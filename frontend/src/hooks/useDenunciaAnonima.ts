@@ -4,20 +4,24 @@ import { DenunciaAnonimaABI } from '../contracts/DenunciaAnonima'
 import { ZKProofService } from '../services/zkProofs'
 import { deleteIPFSFile } from '../services/ipfs'
 
-// Dirección del contrato desplegado en Mantle Sepolia
-const CONTRACT_ADDRESS = '0x70ACEE597cC63C5beda2C9760CbaE1b1f242e13B';
+// Dirección del contrato desplegado en Mantle Sepolia (con función actualizarHashIPFS)
+const CONTRACT_ADDRESS = '0x7B339806c5Bf0bc8e12758D9E65b8806361b66f5';
 
-// Configuración de la red Mantle Sepolia
+// Configuración oficial de la red Mantle Sepolia Testnet
 const MANTLE_SEPOLIA = {
-  chainId: '0x1389', // 5003 en hexadecimal
-  chainName: 'Mantle Sepolia',
+  chainId: '0x138b', // 5003 en hexadecimal
+  chainName: 'Mantle Sepolia Testnet',
   nativeCurrency: {
-    name: 'MNT',
+    name: 'Mantle',
     symbol: 'MNT',
     decimals: 18
   },
-  rpcUrls: ['https://rpc.testnet.mantle.xyz'],
-  blockExplorerUrls: ['https://explorer.testnet.mantle.xyz']
+  rpcUrls: [
+    'https://rpc.sepolia.mantle.xyz',
+    'https://mantle-sepolia.drpc.org',
+    'https://mantle-sepolia-testnet.rpc.thirdweb.com'
+  ],
+  blockExplorerUrls: ['https://explorer.sepolia.mantle.xyz/']
 }
 
 interface SwitchError {
@@ -25,7 +29,7 @@ interface SwitchError {
   message: string;
 }
 
-interface Denuncia {
+export interface Denuncia {
   denunciante: string;
   tipoAcoso: string;
   descripcion: string;
@@ -34,6 +38,7 @@ interface Denuncia {
   blockNumber: number;
   proof?: unknown;
   publicSignals?: unknown;
+  esPublica: boolean; // Nueva propiedad para privacidad
 }
 
 export const useDenunciaAnonima = () => {
@@ -41,7 +46,29 @@ export const useDenunciaAnonima = () => {
   const [error, setError] = useState<string | null>(null)
   const [zkService, setZkService] = useState<ZKProofService | null>(null)
   const [denuncias, setDenuncias] = useState<Denuncia[]>([])
-  const [ultimoBloque, setUltimoBloque] = useState<number | null>(null)
+  const [nuevaDenunciaDetectada, setNuevaDenunciaDetectada] = useState(false)
+
+  // Verificar si la red Mantle Sepolia está disponible
+  const verificarRedMantle = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('https://rpc.sepolia.mantle.xyz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_chainId',
+          params: [],
+          id: 1
+        })
+      })
+      const data = await response.json()
+      return data.result === '0x138b' // 5003 en hex (correcto)
+    } catch {
+      return false
+    }
+  }
 
   // Inicializar el servicio ZK
   const initializeZK = async () => {
@@ -58,41 +85,74 @@ export const useDenunciaAnonima = () => {
     }
   }
 
-  const getProvider = async () => {
+  const getProvider = async (skipNetworkCheck = false) => {
     if (!window.ethereum) {
-      throw new Error('MetaMask no está instalado')
+      throw new Error('MetaMask no está instalado. Por favor instala MetaMask para continuar.')
     }
 
     const provider = new ethers.BrowserProvider(window.ethereum)
-    const network = await provider.getNetwork()
     
-    if (network.chainId !== BigInt(5003)) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x1389' }],
-        })
-      } catch (switchError) {
-        const error = switchError as SwitchError
-        if (error.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [MANTLE_SEPOLIA],
-            })
-          } catch {
-            throw new Error('Error al agregar la red Mantle Sepolia')
+    if (skipNetworkCheck) {
+      return provider
+    }
+
+    try {
+      const network = await provider.getNetwork()
+      
+      if (network.chainId !== BigInt(5003)) {
+        console.log(`Red actual: ${network.chainId}, necesaria: 5003 (Mantle Sepolia)`)
+        
+        try {
+          console.log('Intentando cambiar a red Mantle Sepolia...')
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x138b' }],
+          })
+          console.log('✅ Red cambiada exitosamente')
+        } catch (switchError) {
+          const error = switchError as SwitchError
+          console.log('Error al cambiar red:', error.code, error.message)
+          
+          if (error.code === 4902) {
+            console.log('Red no existe, intentando agregarla...')
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [MANTLE_SEPOLIA],
+              })
+              console.log('✅ Red agregada exitosamente')
+            } catch (addError) {
+              console.error('Error al agregar red:', addError)
+              throw new Error(`
+                No se pudo agregar la red Mantle Sepolia automáticamente.
+                
+                Por favor agrega la red manualmente en MetaMask:
+                • Nombre: Mantle Sepolia
+                • RPC URL: https://rpc.sepolia.mantle.xyz
+                • Chain ID: 5003
+                • Símbolo: MNT
+                • Explorador: https://explorer.sepolia.mantle.xyz
+              `)
+            }
+          } else if (error.code === 4001) {
+            throw new Error('Cambio de red cancelado por el usuario. Por favor cambia a la red Mantle Sepolia manualmente.')
+          } else {
+            throw new Error(`Error al cambiar a la red Mantle Sepolia: ${error.message}`)
           }
-        } else {
-          throw new Error('Error al cambiar a la red Mantle Sepolia')
         }
       }
+    } catch (networkError) {
+      console.error('Error de red:', networkError)
+      if (networkError instanceof Error && networkError.message.includes('agregar la red manualmente')) {
+        throw networkError
+      }
+      throw new Error('Error al verificar la red. Asegúrate de estar conectado a Mantle Sepolia.')
     }
 
     return provider
   }
 
-  const crearDenuncia = async (tipoAcoso: string, ipfsHash: string) => {
+  const crearDenuncia = async (tipoAcoso: string, ipfsHash: string, _esPublica: boolean = true) => {
     try {
       console.log('Iniciando creación de denuncia...')
       setLoading(true)
@@ -163,12 +223,13 @@ export const useDenunciaAnonima = () => {
         publicSignalsLength: publicSignalsArray.length
       })
 
-      // Enviar la transacción
+      // Enviar la transacción con el parámetro esPublica
       const tx = await contract.crearDenuncia(
         tipoAcoso,
         ipfsHash,
         proofBytes,
-        publicSignalsArray
+        publicSignalsArray,
+        _esPublica
       )
 
       console.log('Transacción enviada:', tx.hash)
@@ -225,11 +286,24 @@ export const useDenunciaAnonima = () => {
     }
   }
 
-  // Función para obtener denuncias
-  const obtenerDenuncias = useCallback(async (fromBlock?: number): Promise<Denuncia[]> => {
+  // Función para obtener denuncias usando las funciones del contrato
+  const obtenerDenuncias = useCallback(async (): Promise<Denuncia[]> => {
     try {
       setLoading(true)
       setError(null)
+
+      // Verificar que la red Mantle Sepolia esté disponible
+      const redActiva = await verificarRedMantle()
+      if (!redActiva) {
+        throw new Error(`
+          La red Mantle Sepolia no está disponible o no es accesible.
+          
+          Para solucionarlo:
+          1. Verifica tu conexión a internet
+          2. Asegúrate de estar conectado a Mantle Sepolia en MetaMask
+          3. Recarga la página
+        `)
+      }
 
       const provider = await getProvider()
       const contract = new ethers.Contract(
@@ -238,83 +312,125 @@ export const useDenunciaAnonima = () => {
         provider
       )
 
-      // Obtener el bloque actual
-      const currentBlock = await provider.getBlockNumber()
+      console.log('Obteniendo total de denuncias...')
       
-      // Si no se proporciona un bloque inicial, usar los últimos 10 bloques
-      const startBlock = fromBlock || Math.max(0, currentBlock - 10)
-      
-      console.log(`Buscando eventos desde el bloque ${startBlock} hasta ${currentBlock}`)
-
       try {
-        // Obtener el evento DenunciaCreada
-        const filter = contract.filters.DenunciaCreada()
-        const eventos = await contract.queryFilter(filter, startBlock, currentBlock)
+        // Obtener el total de denuncias
+        console.log('🔍 Consultando contrato en:', CONTRACT_ADDRESS);
+        const total = await contract.totalDenuncias()
+        const totalNumber = Number(total)
+        
+        console.log(`✅ Total de denuncias en el nuevo contrato: ${totalNumber}`)
 
-        console.log(`Se encontraron ${eventos.length} eventos`)
-
-        if (eventos.length === 0) {
-          setUltimoBloque(startBlock)
+        if (totalNumber === 0) {
+          console.log('📝 Contrato nuevo - no hay denuncias registradas aún')
           return []
         }
 
-        // Convertir los eventos a un formato más amigable
-        const denunciasPromises = eventos.map(async (evento) => {
-          try {
-            const bloque = await provider.getBlock(evento.blockNumber)
-            if (!bloque) {
-              console.error(`No se pudo obtener el bloque ${evento.blockNumber}`)
+        // Obtener todas las denuncias
+        const denunciasPromises = []
+        for (let i = 0; i < totalNumber; i++) {
+          denunciasPromises.push(
+            contract.obtenerDenuncia(i).then(async (denunciaStruct: any) => {
+              try {
+                // El contrato devuelve un struct, no valores individuales
+                const denuncia = {
+                  denunciante: denunciaStruct.denunciante,
+                  tipoAcoso: denunciaStruct.tipoAcoso,
+                  ipfsHash: denunciaStruct.ipfsHash,
+                  timestamp: denunciaStruct.timestamp,
+                  proof: denunciaStruct.proof,
+                  publicSignals: denunciaStruct.publicSignals,
+                  esPublica: denunciaStruct.esPublica || true // Fallback para compatibilidad
+                };
+                
+                // Obtener el bloque para el timestamp
+                const provider = await getProvider()
+                const currentBlock = await provider.getBlockNumber()
+                
+                // Intentar obtener un preview del contenido IPFS
+                let descripcionPreview = "No se proporcionó descripción";
+                if (denuncia.ipfsHash) {
+                  try {
+                    // Importar dinámicamente para evitar problemas de dependencias circulares
+                    const { getIPFSContent } = await import('../services/ipfs');
+                    const contenidoIPFS = await getIPFSContent(denuncia.ipfsHash);
+                    
+                    // Intentar parsear como JSON para extraer la descripción
+                    try {
+                      const jsonContent = JSON.parse(contenidoIPFS);
+                      
+                      // Verificar si tiene estructura anidada con contenido_cifrado
+                      if (jsonContent.contenido_cifrado) {
+                        console.log('🔍 Hook: Detectada estructura con contenido_cifrado anidado');
+                        descripcionPreview = `🔒 Denuncia cifrada de ${jsonContent.tipo || 'tipo no especificado'} (haz clic para descifrar)`;
+                      } else if (jsonContent.descripcion) {
+                        // Mostrar un preview de la descripción (primeros 200 caracteres)
+                        descripcionPreview = jsonContent.descripcion.length > 200 
+                          ? jsonContent.descripcion.substring(0, 200) + "..."
+                          : jsonContent.descripcion;
+                      } else if (jsonContent.message) {
+                        descripcionPreview = jsonContent.message.length > 200 
+                          ? jsonContent.message.substring(0, 200) + "..."
+                          : jsonContent.message;
+                      } else {
+                        descripcionPreview = "Contenido IPFS disponible (haz clic en 'Ver descripción completa')";
+                      }
+                    } catch {
+                      // Si no es JSON, usar el contenido como texto plano
+                      descripcionPreview = contenidoIPFS.length > 200 
+                        ? contenidoIPFS.substring(0, 200) + "..."
+                        : contenidoIPFS;
+                    }
+                  } catch (error) {
+                    console.warn(`No se pudo obtener preview de IPFS para ${denuncia.ipfsHash}:`, error);
+                    descripcionPreview = "Contenido almacenado en IPFS (haz clic en 'Ver descripción completa' para acceder)";
+                  }
+                }
+
+                return {
+                  denunciante: denuncia.denunciante,
+                  tipoAcoso: denuncia.tipoAcoso,
+                  descripcion: descripcionPreview,
+                  ipfsHash: denuncia.ipfsHash,
+                  proof: denuncia.proof,
+                  publicSignals: denuncia.publicSignals,
+                  timestamp: new Date(Number(denuncia.timestamp) * 1000),
+                  blockNumber: currentBlock,
+                  esPublica: denuncia.esPublica !== undefined ? denuncia.esPublica : true
+                } as Denuncia
+              } catch (error) {
+                console.error(`Error al procesar denuncia ${i}:`, error)
+                return null
+              }
+            }).catch((error: any) => {
+              console.error(`Error al obtener denuncia ${i}:`, error)
               return null
-            }
+            })
+          )
+        }
 
-            const args = (evento as ethers.EventLog).args
-            if (!args) {
-              console.error('Evento sin argumentos:', evento)
-              return null
-            }
-
-            const [denunciante, tipoAcoso, descripcion, ipfsHash, proof, publicSignals] = args as unknown as [string, string, string, string, unknown, unknown]
-
-            return {
-              denunciante,
-              tipoAcoso,
-              descripcion: descripcion || "No se proporcionó descripción",
-              ipfsHash,
-              proof,
-              publicSignals,
-              timestamp: new Date(Number(bloque.timestamp) * 1000),
-              blockNumber: evento.blockNumber
-            } as Denuncia
-          } catch (error) {
-            console.error('Error al procesar evento:', error)
-            return null
-          }
-        })
-
-        const nuevasDenuncias = (await Promise.all(denunciasPromises)).filter((d): d is Denuncia => d !== null)
+        const denunciasResults = await Promise.all(denunciasPromises)
+        const denunciasValidas = denunciasResults.filter((d): d is Denuncia => d !== null)
         
-        // Actualizar el último bloque procesado
-        setUltimoBloque(startBlock)
+        console.log(`Se obtuvieron ${denunciasValidas.length} denuncias válidas`)
         
         // Ordenar las denuncias por timestamp (más recientes primero)
-        const denunciasOrdenadas = nuevasDenuncias.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+        const denunciasOrdenadas = denunciasValidas.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
         
-        // Actualizar el estado de denuncias
-        setDenuncias(prevDenuncias => {
-          // Combinar denuncias existentes con nuevas, evitando duplicados
-          const denunciasUnicas = [...prevDenuncias]
-          denunciasOrdenadas.forEach(nuevaDenuncia => {
-            if (!denunciasUnicas.some(d => d.ipfsHash === nuevaDenuncia.ipfsHash)) {
-              denunciasUnicas.push(nuevaDenuncia)
-            }
-          })
-          return denunciasUnicas.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-        })
-
         return denunciasOrdenadas
-      } catch (error) {
-        console.error('Error al obtener eventos:', error)
-        throw error
+      } catch (contractError) {
+        console.error('❌ Error al llamar funciones del contrato:', contractError)
+        
+        // Si es un contrato nuevo, es normal que no tenga denuncias
+        if (contractError instanceof Error && contractError.message.includes('could not decode result data')) {
+          console.log('📝 Contrato nuevo detectado - inicializando historial vacío')
+          return []
+        }
+        
+        // Fallback: intentar obtener eventos como antes
+        console.log('🔄 Intentando obtener denuncias mediante eventos...')
+        return await obtenerDenunciasPorEventos()
       }
     } catch (err) {
       console.error('Error al obtener denuncias:', err)
@@ -325,52 +441,291 @@ export const useDenunciaAnonima = () => {
     }
   }, [])
 
+  // Función fallback para obtener denuncias por eventos
+  const obtenerDenunciasPorEventos = async (): Promise<Denuncia[]> => {
+    try {
+      const provider = await getProvider()
+      const contract = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        DenunciaAnonimaABI as ethers.InterfaceAbi,
+        provider
+      )
+
+      const currentBlock = await provider.getBlockNumber()
+      // Para el contrato nuevo, buscar desde el bloque de despliegue
+      const startBlock = Math.max(0, currentBlock - 10000) // Buscar en más bloques para el nuevo contrato
+      
+      console.log(`🔍 Buscando eventos en contrato ${CONTRACT_ADDRESS}`)
+      console.log(`📊 Rango de bloques: ${startBlock} hasta ${currentBlock}`)
+
+      const filter = contract.filters.DenunciaCreada()
+      const eventos = await contract.queryFilter(filter, startBlock, currentBlock)
+
+      console.log(`Se encontraron ${eventos.length} eventos`)
+
+      if (eventos.length === 0) {
+        return []
+      }
+
+      const denunciasPromises = eventos.map(async (evento) => {
+        try {
+          const bloque = await provider.getBlock(evento.blockNumber)
+          if (!bloque) {
+            console.error(`No se pudo obtener el bloque ${evento.blockNumber}`)
+            return null
+          }
+
+          const args = (evento as ethers.EventLog).args
+          if (!args) {
+            console.error('Evento sin argumentos:', evento)
+            return null
+          }
+
+          const [denunciante, tipoAcoso, ipfsHash, proof, publicSignals] = args as unknown as [string, string, string, unknown, unknown]
+
+          // Intentar obtener un preview del contenido IPFS para eventos
+          let descripcionPreview = "No se proporcionó descripción";
+          if (ipfsHash) {
+            try {
+              // Importar dinámicamente para evitar problemas de dependencias circulares
+              const { getIPFSContent } = await import('../services/ipfs');
+              const contenidoIPFS = await getIPFSContent(ipfsHash);
+              
+              // Intentar parsear como JSON para extraer la descripción
+              try {
+                const jsonContent = JSON.parse(contenidoIPFS);
+                
+                // Verificar si tiene estructura anidada con contenido_cifrado
+                if (jsonContent.contenido_cifrado) {
+                  console.log('🔍 Hook (eventos): Detectada estructura con contenido_cifrado anidado');
+                  descripcionPreview = `🔒 Denuncia cifrada de ${jsonContent.tipo || 'tipo no especificado'} (haz clic para descifrar)`;
+                } else if (jsonContent.descripcion) {
+                  // Mostrar un preview de la descripción (primeros 200 caracteres)
+                  descripcionPreview = jsonContent.descripcion.length > 200 
+                    ? jsonContent.descripcion.substring(0, 200) + "..."
+                    : jsonContent.descripcion;
+                } else if (jsonContent.message) {
+                  descripcionPreview = jsonContent.message.length > 200 
+                    ? jsonContent.message.substring(0, 200) + "..."
+                    : jsonContent.message;
+                } else {
+                  descripcionPreview = "Contenido IPFS disponible (haz clic en 'Ver descripción completa')";
+                }
+              } catch {
+                // Si no es JSON, usar el contenido como texto plano
+                descripcionPreview = contenidoIPFS.length > 200 
+                  ? contenidoIPFS.substring(0, 200) + "..."
+                  : contenidoIPFS;
+              }
+            } catch (error) {
+              console.warn(`No se pudo obtener preview de IPFS para evento ${ipfsHash}:`, error);
+              descripcionPreview = "Contenido almacenado en IPFS (haz clic en 'Ver descripción completa' para acceder)";
+            }
+          }
+
+          return {
+            denunciante,
+            tipoAcoso,
+            descripcion: descripcionPreview,
+            ipfsHash,
+            proof,
+            publicSignals,
+            timestamp: new Date(Number(bloque.timestamp) * 1000),
+            blockNumber: evento.blockNumber,
+            esPublica: true // Por defecto para eventos
+          } as Denuncia
+        } catch (error) {
+          console.error('Error al procesar evento:', error)
+          return null
+        }
+      })
+
+      const nuevasDenuncias = (await Promise.all(denunciasPromises)).filter((d): d is Denuncia => d !== null)
+      return nuevasDenuncias.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    } catch (error) {
+      console.error('Error al obtener eventos:', error)
+      return []
+    }
+  }
+
   // Función para cargar más denuncias
   const cargarMasDenuncias = useCallback(async () => {
-    if (!ultimoBloque) return
-    
-    const nuevasDenuncias = await obtenerDenuncias(ultimoBloque - 1)
-    setDenuncias(prev => [...prev, ...nuevasDenuncias])
-  }, [ultimoBloque, obtenerDenuncias])
+    // Por ahora, simplemente actualizar todas las denuncias
+    await actualizarDenuncias()
+  }, [])
 
   // Función para actualizar la lista de denuncias
   const actualizarDenuncias = useCallback(async () => {
+    console.log('Actualizando lista de denuncias...')
     const nuevasDenuncias = await obtenerDenuncias()
     setDenuncias(nuevasDenuncias)
+    console.log(`Lista actualizada con ${nuevasDenuncias.length} denuncias`)
   }, [obtenerDenuncias])
 
   // Efecto para cargar denuncias inicialmente y configurar el listener
   useEffect(() => {
+    let contract: ethers.Contract | null = null
+    let isActive = true
+
     const setupContract = async () => {
       try {
+        console.log('🔄 Configurando listener de eventos...')
         const provider = await getProvider()
-        const contract = new ethers.Contract(
+        contract = new ethers.Contract(
           CONTRACT_ADDRESS,
           DenunciaAnonimaABI as ethers.InterfaceAbi,
           provider
         )
 
         // Cargar denuncias iniciales
-        await actualizarDenuncias()
-
-        // Configurar listener para nuevos eventos
-        contract.on('DenunciaCreada', async () => {
-          console.log('Nueva denuncia detectada, actualizando lista...')
+        if (isActive) {
           await actualizarDenuncias()
-        })
-
-        // Limpiar listener al desmontar
-        return () => {
-          contract.removeAllListeners('DenunciaCreada')
         }
+
+        // Configurar listener para nuevos eventos con manejo de errores
+        const handleNewDenuncia = async (denunciante: string, tipoAcoso: string, _ipfsHash: string, _proof: unknown, _publicSignals: unknown, event: ethers.EventLog) => {
+          try {
+            console.log('🆕 Nueva denuncia detectada:', {
+              denunciante: denunciante.slice(0, 6) + '...',
+              tipoAcoso,
+              bloque: event.blockNumber,
+              txHash: event.transactionHash
+            })
+            
+            // Mostrar indicador de nueva denuncia
+            if (isActive) {
+              setNuevaDenunciaDetectada(true)
+            }
+            
+            // Esperar un poco para asegurar que la transacción esté completamente procesada
+            setTimeout(async () => {
+              if (isActive) {
+                console.log('🔄 Actualizando lista de denuncias...')
+                await actualizarDenuncias()
+                // Ocultar indicador después de actualizar
+                setTimeout(() => {
+                  if (isActive) {
+                    setNuevaDenunciaDetectada(false)
+                  }
+                }, 3000) // Mostrar por 3 segundos
+              }
+            }, 2000) // Esperar 2 segundos
+            
+          } catch (error) {
+            console.error('❌ Error al procesar nueva denuncia:', error)
+          }
+        }
+
+        contract.on('DenunciaCreada', handleNewDenuncia)
+
+        // Configurar listener para errores del provider
+        if (provider) {
+          provider.on('error', (error) => {
+            console.error('❌ Error en el provider:', error)
+            // Intentar reconectar después de un error
+            setTimeout(() => {
+              if (isActive) {
+                console.log('🔄 Intentando reconectar listener...')
+                setupContract()
+              }
+            }, 5000)
+          })
+        }
+
+        console.log('✅ Listener de eventos configurado correctamente')
+
       } catch (error) {
-        console.error('Error al configurar el contrato:', error)
-        setError('Error al conectar con la blockchain')
+        console.error('❌ Error al configurar el contrato:', error)
+        if (isActive) {
+          setError('Error al conectar con la blockchain. Reintentando...')
+          // Reintentar después de 10 segundos
+          setTimeout(() => {
+            if (isActive) {
+              setupContract()
+            }
+          }, 10000)
+        }
       }
     }
 
     setupContract()
+
+    // Cleanup function
+    return () => {
+      isActive = false
+      if (contract) {
+        console.log('🧹 Limpiando listeners de eventos...')
+        contract.removeAllListeners('DenunciaCreada')
+        contract.removeAllListeners('error')
+      }
+    }
   }, [actualizarDenuncias])
+
+  const actualizarHashIPFS = async (denunciaId: number, nuevoHashIPFS: string): Promise<boolean> => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      console.log('🔄 Iniciando actualización de hash IPFS...', { denunciaId, nuevoHashIPFS });
+
+      const provider = await getProvider()
+      const signer = await provider.getSigner()
+      const signerAddress = await signer.getAddress()
+      
+      console.log('👤 Signer address:', signerAddress);
+      
+      const contract = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        DenunciaAnonimaABI,
+        signer
+      )
+
+      // Verificar que la denuncia existe y obtener información actual
+      console.log('🔍 Verificando denuncia existente...');
+      const denunciaActual = await contract.obtenerDenuncia(denunciaId);
+      console.log('📋 Denuncia actual:', {
+        denunciante: denunciaActual.denunciante,
+        hashActual: denunciaActual.ipfsHash,
+        esDelMismoUsuario: denunciaActual.denunciante.toLowerCase() === signerAddress.toLowerCase()
+      });
+
+      if (denunciaActual.denunciante.toLowerCase() !== signerAddress.toLowerCase()) {
+        throw new Error(`Solo el denunciante puede actualizar el hash. Denunciante: ${denunciaActual.denunciante}, Usuario actual: ${signerAddress}`);
+      }
+
+      if (!denunciaActual.ipfsHash.startsWith('QmTemporal')) {
+        console.warn('⚠️ El hash actual no es temporal:', denunciaActual.ipfsHash);
+        // Continuar de todos modos, pero advertir
+      }
+
+      console.log('📤 Enviando transacción de actualización...');
+      
+      // Llamar a la función actualizarHashIPFS del contrato
+      const tx = await contract.actualizarHashIPFS(denunciaId, nuevoHashIPFS)
+      
+      console.log('✅ Transacción de actualización enviada:', tx.hash)
+      
+      // Esperar confirmación
+      const receipt = await tx.wait()
+      console.log('🎉 Hash IPFS actualizado en blockchain:', receipt.hash)
+
+      // Actualizar la lista de denuncias
+      console.log('🔄 Actualizando lista de denuncias...');
+      await actualizarDenuncias()
+
+      return true
+    } catch (err) {
+      console.error('❌ Error detallado al actualizar hash IPFS:', err)
+      if (err instanceof Error) {
+        console.error('📝 Mensaje de error:', err.message)
+        console.error('📚 Stack trace:', err.stack)
+      }
+      setError(err instanceof Error ? err.message : 'Error al actualizar hash IPFS')
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return {
     denuncias,
@@ -379,7 +734,9 @@ export const useDenunciaAnonima = () => {
     actualizarDenuncias,
     cargarMasDenuncias,
     obtenerDenuncias,
+    actualizarHashIPFS,
     loading,
-    error
+    error,
+    nuevaDenunciaDetectada
   }
 } 

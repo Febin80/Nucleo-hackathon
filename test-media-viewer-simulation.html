@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test MediaViewer - IPFS Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .media-viewer {
+            background: #e3f2fd;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #2196f3;
+            margin: 20px 0;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .media-item {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .media-item:hover {
+            transform: scale(1.05);
+        }
+        .media-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid #4caf50;
+        }
+        .media-placeholder {
+            width: 120px;
+            height: 120px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-radius: 6px;
+        }
+        .badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #4caf50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+        .status {
+            margin-top: 4px;
+            font-size: 12px;
+            text-align: center;
+        }
+        .gateway-test {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff3e0;
+            border-radius: 6px;
+            border: 1px solid #ff9800;
+        }
+        .gateway-url {
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 5px 0;
+            padding: 5px;
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .loading { color: #2196f3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test MediaViewer - IPFS Images</h1>
+        
+        <div class="gateway-test">
+            <h3>📋 Información de la Denuncia</h3>
+            <p><strong>CID Principal:</strong> QmZRDatU45jY6e8NtqsPBSQZ1XQchzzLWZtzAPCXh4zP7c</p>
+            <p><strong>Descripción:</strong> tom hsu chen starbucks osito</p>
+            <p><strong>Tipo:</strong> otro</p>
+        </div>
+
+        <div class="media-viewer">
+            <h3>📎 Evidencia de la Denuncia</h3>
+            <div style="background: #e8f5e8; padding: 8px; border-radius: 4px; margin: 8px 0;">
+                <small>ℹ️ Haz clic en cualquier elemento para verlo en tamaño completo</small>
+            </div>
+            
+            <div class="media-grid">
+                <div class="media-item" onclick="openModal('QmQdSkiGmjq4phfcAjLEBkq2NbCNrc9tNCdPZ6HUpfNUUj')">
+                    <img 
+                        id="image-1"
+                        class="media-image" 
+                        src="https://gateway.pinata.cloud/ipfs/QmQdSkiGmjq4phfcAjLEBkq2NbCNrc9tNCdPZ6HUpfNUUj"
+                        alt="Evidencia 1"
+                        onload="handleImageLoad(1, this.src)"
+                        onerror="handleImageError(1)"
+                    />
+                    <div class="badge">🖼️</div>
+                    <div class="status" id="status-1">🔄 Cargando...</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 12px;">
+                <small style="color: #666;">💡 Almacenado en IPFS descentralizado</small>
+            </div>
+        </div>
+
+        <div class="gateway-test">
+            <h3>🌐 Test de Gateways</h3>
+            <p>Probando el CID de la imagen: <code>QmQdSkiGmjq4phfcAjLEBkq2NbCNrc9tNCdPZ6HUpfNUUj</code></p>
+            
+            <div id="gateway-results">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+
+        <div class="gateway-test">
+            <h3>🔧 Información Técnica</h3>
+            <p><strong>Estructura JSON de la denuncia:</strong></p>
+            <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto;">{
+  "tipo": "otro",
+  "descripcion": "tom hsu chen starbucks osito",
+  "evidencia": {
+    "archivos": ["QmQdSkiGmjq4phfcAjLEBkq2NbCNrc9tNCdPZ6HUpfNUUj"],
+    "tipos": ["image/jpeg"]
+  },
+  "metadata": {
+    "esPublica": true,
+    "timestamp": "2025-08-05T17:42:45.071Z",
+    "tieneMultimedia": true,
+    "cantidadArchivos": 1
+  }
+}</pre>
+        </div>
+    </div>
+
+    <!-- Modal para imagen completa -->
+    <div id="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;" onclick="closeModal()">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%;">
+            <img id="modal-image" style="max-width: 100%; max-height: 100%; border-radius: 8px;" />
+            <div style="text-align: center; margin-top: 10px;">
+                <button onclick="closeModal()" style="background: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageCID = 'QmQdSkiGmjq4phfcAjLEBkq2NbCNrc9tNCdPZ6HUpfNUUj';
+        const gateways = [
+            'https://gateway.pinata.cloud/ipfs/',
+            'https://dweb.link/ipfs/',
+            'https://ipfs.io/ipfs/',
+            'https://gateway.ipfs.io/ipfs/',
+            'https://cloudflare-ipfs.com/ipfs/'
+        ];
+
+        function handleImageLoad(imageNum, src) {
+            console.log(`✅ Imagen ${imageNum} cargada desde: ${src}`);
+            document.getElementById(`status-${imageNum}`).innerHTML = '<span class="success">✅ Cargada</span>';
+        }
+
+        function handleImageError(imageNum) {
+            console.error(`❌ Error cargando imagen ${imageNum}`);
+            const img = document.getElementById(`image-${imageNum}`);
+            const currentSrc = img.src;
+            
+            // Encontrar el gateway actual
+            let currentGatewayIndex = -1;
+            for (let i = 0; i < gateways.length; i++) {
+                if (currentSrc.includes(gateways[i].replace('https://', '').replace('/ipfs/', ''))) {
+                    currentGatewayIndex = i;
+                    break;
+                }
+            }
+            
+            // Intentar siguiente gateway
+            if (currentGatewayIndex < gateways.length - 1) {
+                const nextGateway = gateways[currentGatewayIndex + 1];
+                const nextUrl = nextGateway + imageCID;
+                console.log(`🔄 Intentando siguiente gateway: ${nextUrl}`);
+                img.src = nextUrl;
+                document.getElementById(`status-${imageNum}`).innerHTML = '<span class="loading">🔄 Probando siguiente gateway...</span>';
+            } else {
+                console.error('❌ Todos los gateways fallaron');
+                document.getElementById(`status-${imageNum}`).innerHTML = '<span class="error">❌ No disponible</span>';
+                
+                // Mostrar placeholder
+                img.style.display = 'none';
+                const placeholder = document.createElement('div');
+                placeholder.className = 'media-placeholder';
+                placeholder.innerHTML = '<div style="font-size: 24px;">🖼️</div><div style="font-size: 10px; color: #666;">Imagen no disponible</div>';
+                img.parentNode.insertBefore(placeholder, img);
+            }
+        }
+
+        function openModal(cid) {
+            const modal = document.getElementById('modal');
+            const modalImage = document.getElementById('modal-image');
+            modalImage.src = `https://gateway.pinata.cloud/ipfs/${cid}`;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Test de gateways al cargar la página
+        window.onload = function() {
+            const resultsDiv = document.getElementById('gateway-results');
+            
+            gateways.forEach((gateway, index) => {
+                const url = gateway + imageCID;
+                const div = document.createElement('div');
+                div.className = 'gateway-url';
+                div.innerHTML = `<strong>Gateway ${index + 1}:</strong> <span id="result-${index}" class="loading">🔄 Probando...</span><br>${url}`;
+                resultsDiv.appendChild(div);
+                
+                // Probar cada gateway
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById(`result-${index}`).innerHTML = '<span class="success">✅ Funciona</span>';
+                };
+                img.onerror = function() {
+                    document.getElementById(`result-${index}`).innerHTML = '<span class="error">❌ No funciona</span>';
+                };
+                img.src = url;
+            });
+        };
+
+        // Logging para debug
+        console.log('🧪 MediaViewer Test iniciado');
+        console.log('CID de imagen:', imageCID);
+        console.log('Gateways a probar:', gateways);
+    </script>
+</body>
+</html>
