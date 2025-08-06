@@ -1,15 +1,14 @@
-# Plataforma de Denuncia Anónima
+# DenunciaChain - Sistema de Denuncias Anónimas con Zero-Knowledge Proofs
 
-Una solución tecnológica diseñada para facilitar y proteger el proceso de reportar casos de acoso laboral, escolar, ciberacoso u otras formas de violencia, garantizando el anonimato del denunciante y la validez legal de las pruebas.
+## Descripción
+DenunciaChain es una plataforma descentralizada que permite realizar denuncias anónimas de manera segura utilizando tecnología blockchain y zero-knowledge proofs. El sistema garantiza la privacidad de los denunciantes mientras mantiene la integridad y verificabilidad de las denuncias.
 
 ## Características Principales
-
-- Interfaz intuitiva y fácil de usar
-- Denuncias completamente anónimas
-- Almacenamiento seguro de pruebas usando blockchain
-- Validación de datos y formularios
-- Soporte para múltiples tipos de archivos como pruebas
-- Sistema de seguimiento de denuncias
+- 🔒 Denuncias completamente anónimas
+- 🔐 Verificación mediante zero-knowledge proofs
+- 📱 Interfaz de usuario moderna y responsive
+- 🌐 Integración con IPFS para almacenamiento descentralizado
+- ⛓️ Smart contracts en Ethereum para la gestión de denuncias
 
 ## Tecnologías Utilizadas
 - Frontend: React + TypeScript + Vite
@@ -98,3 +97,7 @@ nucleo/
 ## Licencia
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
+## Contacto
+Tu Nombre - [@tu_twitter](https://twitter.com/tu_twitter)
+
+Link del Proyecto: [https://github.com/tu-usuario/nucleo](https://github.com/tu-usuario/nucleo)

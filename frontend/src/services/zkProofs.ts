@@ -42,7 +42,7 @@ export class ZKProofService {
     return new TextEncoder().encode(serializedProof);
   }
 
-  public async generateProof(inputs: ProofInputs): Promise<{ proof: Uint8Array; publicSignals: string[] }> {
+  public async generateProof(_inputs: ProofInputs): Promise<{ proof: Uint8Array; publicSignals: string[] }> {
     try {
       // Generar una prueba simulada para desarrollo
       const mockProof = {
@@ -65,7 +65,7 @@ export class ZKProofService {
     }
   }
 
-  public async verifyProof(proof: ZKProof): Promise<boolean> {
+  public async verifyProof(_proof: ZKProof): Promise<boolean> {
     // En desarrollo, siempre retornamos true
     return true
   }

@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "encrypted": true,
+  "algorithm": "AES-256-CBC",
+  "data": "U2FsdGVkX1+3mqA50839Hjzr0+ffaDqykEMn8cgNbk4MXErze7cZh+Lj2QN+u0PoIo+MD9wQ3xlT82DGwSjMew/wv82zAPvEU7+EFpiaWVU7Kb715UuI2PwJbOw89c3MoUx70VwhaI+/BnAuqFBUWYl7nke+wBTSomGtB3fktntdZOMS+lNLjHRNZXSKoKc21KUjFtOJkfTHi5p0BWjexCgLBFSBjwUq6F73O59XuUYtqyEgxBOVDV7wiRGAXn4VN/JhBPrRCVC4Bzzb5O29Ck1AV0cVanlquNitVX7IQ88=",
+  "salt": "f25935a153738f8ed6a1b9ca8cbbde7f",
+  "iv": "b70ce63ee0d634711d03fb220aeb54b5",
+  "timestamp": "2025-08-05T17:55:45.355Z"
+}

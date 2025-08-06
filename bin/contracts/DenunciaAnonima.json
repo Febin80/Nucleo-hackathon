@@ -1,0 +1,2176 @@
+{
+    "contractName": "DenunciaAnonima",
+    "abi": [
+        {
+            "inputs": [],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnableInvalidOwner",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnableUnauthorizedAccount",
+            "type": "error"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "denunciante",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "tipoAcoso",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "ipfsHash",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bytes",
+                    "name": "proof",
+                    "type": "bytes"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256[]",
+                    "name": "publicSignals",
+                    "type": "uint256[]"
+                }
+            ],
+            "name": "DenunciaCreada",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "_tipoAcoso",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "_ipfsHash",
+                    "type": "string"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "_proof",
+                    "type": "bytes"
+                },
+                {
+                    "internalType": "uint256[]",
+                    "name": "_publicSignals",
+                    "type": "uint256[]"
+                }
+            ],
+            "name": "crearDenuncia",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "denuncias",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "denunciante",
+                    "type": "address"
+                },
+                {
+                    "internalType": "string",
+                    "name": "tipoAcoso",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "ipfsHash",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "timestamp",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "proof",
+                    "type": "bytes"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "denunciasPorDenunciante",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_denunciaId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "obtenerDenuncia",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "denunciante",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "tipoAcoso",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "ipfsHash",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "timestamp",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "proof",
+                            "type": "bytes"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "publicSignals",
+                            "type": "uint256[]"
+                        }
+                    ],
+                    "internalType": "struct DenunciaAnonima.Denuncia",
+                    "name": "",
+                    "type": "tuple"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_denunciante",
+                    "type": "address"
+                }
+            ],
+            "name": "obtenerDenunciasPorDenunciante",
+            "outputs": [
+                {
+                    "internalType": "uint256[]",
+                    "name": "",
+                    "type": "uint256[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "renounceOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "totalDenuncias",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "metadata": "{\"compiler\":{\"version\":\"0.8.30+commit.73712a01\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"denunciante\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"tipoAcoso\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"ipfsHash\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256[]\",\"name\":\"publicSignals\",\"type\":\"uint256[]\"}],\"name\":\"DenunciaCreada\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_tipoAcoso\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_ipfsHash\",\"type\":\"string\"},{\"internalType\":\"bytes\",\"name\":\"_proof\",\"type\":\"bytes\"},{\"internalType\":\"uint256[]\",\"name\":\"_publicSignals\",\"type\":\"uint256[]\"}],\"name\":\"crearDenuncia\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"denuncias\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"denunciante\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"tipoAcoso\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"ipfsHash\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"denunciasPorDenunciante\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_denunciaId\",\"type\":\"uint256\"}],\"name\":\"obtenerDenuncia\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"denunciante\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"tipoAcoso\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"ipfsHash\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"},{\"internalType\":\"uint256[]\",\"name\":\"publicSignals\",\"type\":\"uint256[]\"}],\"internalType\":\"struct DenunciaAnonima.Denuncia\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_denunciante\",\"type\":\"address\"}],\"name\":\"obtenerDenunciasPorDenunciante\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalDenuncias\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"errors\":{\"OwnableInvalidOwner(address)\":[{\"details\":\"The owner is not a valid owner account. (eg. `address(0)`)\"}],\"OwnableUnauthorizedAccount(address)\":[{\"details\":\"The caller account is not authorized to perform an operation.\"}]},\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/Users/kevinkuo/Desktop/Hackathon/Nucleo/contracts/DenunciaAnonima.sol\":\"DenunciaAnonima\"},\"evmVersion\":\"prague\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"/Users/kevinkuo/Desktop/Hackathon/Nucleo/contracts/DenunciaAnonima.sol\":{\"keccak256\":\"0xc7c794377baf885c66f02582e8ba9811e801b9434c9f8724948dc384ad36fac9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://db64533f0855dce2ce90abc393e2ce1ade532350f2b7157229d029e400acb870\",\"dweb:/ipfs/QmNwSgkjGSt2E6rX5uKkUkjEikDRFyghpYM4a3Xp1NiGKT\"]},\"/Users/kevinkuo/Desktop/Hackathon/Nucleo/node_modules/@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6\",\"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a\"]},\"/Users/kevinkuo/Desktop/Hackathon/Nucleo/node_modules/@openzeppelin/contracts/utils/Context.sol\":{\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12\",\"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF\"]}},\"version\":1}",
+    "bytecode": "608080604052346071573315605e575f8054336001600160a01b0319821681178355916001600160a01b03909116907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09080a3610ceb90816100768239f35b631e4fbdf760e01b5f525f60045260245ffd5b5f80fdfe60806040526004361015610011575f80fd5b5f3560e01c8063075fd0fa146109a35780631c1a2b4b14610986578063715018a61461092f57806372281b2014610767578063884d4610146106a25780638da5cb5b1461067b5780639db40a511461062b578063b02bad47146101055763f2fde38b1461007c575f80fd5b34610101576020366003190112610101576100956109fb565b61009d610c8f565b6001600160a01b031680156100ee575f80546001600160a01b03198116831782556001600160a01b0316907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09080a3005b631e4fbdf760e01b5f525f60045260245ffd5b5f80fd5b346101015760803660031901126101015760043567ffffffffffffffff811161010157610136903690600401610bce565b60243567ffffffffffffffff811161010157610156903690600401610bce565b60443567ffffffffffffffff8111610101573660238201121561010157610187903690602481600401359101610b88565b6064359267ffffffffffffffff841161010157366023850112156101015783600401359367ffffffffffffffff851161048a578460051b604051956101cf6020830188610b33565b8652602460208701918301019136831161010157602401905b82821061061b5750505060035460405161020181610b17565b33815260208101908382526040810186815260608201428152608083019187835260a08401948a8652865f52600160205260405f209460018060a01b039051166bffffffffffffffffffffffff60a01b86541617855560018501905180519067ffffffffffffffff821161048a576102838261027d8554610a5e565b85610c4c565b602090601f83116001146105b8576102b292915f91836105ad575b50508160011b915f199060031b1c19161790565b90555b518051600285019167ffffffffffffffff821161048a576102da8261027d8554610a5e565b602090601f831160011461054a5761030892915f918361053f5750508160011b915f199060031b1c19161790565b90555b516003830155518051600483019167ffffffffffffffff821161048a576103368261027d8554610a5e565b602090601f83116001146104d85791806103699260059695945f926104cd5750508160011b915f199060031b1c19161790565b90555b0190519081519167ffffffffffffffff831161048a57600160401b831161048a5760209082548484558085106104b2575b5001905f5260205f205f5b83811061049e5750505050335f52600260205260405f208054600160401b81101561048a576103dc91600182018155610a11565b819291549060031b91821b915f19901b19161790556003545f19811461047657610462610446936104547f4aaf5ddd77becca321430e9e94611156b8958de1684138b1a20e93e375bdbb7a9660016104719501600355604051968796608088526080880190610a3a565b908682036020880152610a3a565b908482036040860152610a3a565b82810360608401523395610b55565b0390a2005b634e487b7160e01b5f52601160045260245ffd5b634e487b7160e01b5f52604160045260245ffd5b6001906020845194019381840155016103a8565b6104c790845f5285845f209182019101610c36565b8961039d565b015190508c8061029e565b90601f19831691845f52815f20925f5b81811061052757509160019391856005989796941061050f575b505050811b01905561036c565b01515f1960f88460031b161c191690558b8080610502565b929360206001819287860151815501950193016104e8565b015190508d8061029e565b90601f19831691845f52815f20925f5b818110610595575090846001959493921061057d575b505050811b01905561030b565b01515f1960f88460031b161c191690558c8080610570565b9293602060018192878601518155019501930161055a565b015190508e8061029e565b90601f19831691845f52815f20925f5b81811061060357509084600195949392106105eb575b505050811b0190556102b5565b01515f1960f88460031b161c191690558d80806105de565b929360206001819287860151815501950193016105c8565b81358152602091820191016101e8565b34610101576020366003190112610101576001600160a01b0361064c6109fb565b165f52600260205261067761066360405f20610bec565b604051918291602083526020830190610b55565b0390f35b34610101575f366003190112610101575f546040516001600160a01b039091168152602090f35b34610101576020366003190112610101576004355f52600160205260405f2060018060a01b03815416610677604051926106ea846106e38160018501610a96565b0385610b33565b600461075460405161070a816107038160028801610a96565b0382610b33565b61072a6003850154946107236040518096819301610a96565b0384610b33565b610746604051978897885260a0602089015260a0880190610a3a565b908682036040880152610a3a565b9160608501528382036080850152610a3a565b3461010157602036600319011261010157600435606060a060405161078b81610b17565b5f81528260208201528260408201525f8382015282608082015201526003548110156108f5575f52600160205260405f206040516107c881610b17565b81546001600160a01b03168152604051916107ea836107238160018501610a96565b602082019283526108b060405191610809836107238160028501610a96565b604084019283526003810154906060850191825261089761084e6005604051936108418561083a8160048501610a96565b0386610b33565b6080890194855201610bec565b9460a0870195865261088460405198899860208a5260018060a01b0390511660208a01525160c060408a015260e0890190610a3a565b9051878203601f19016060890152610a3a565b9151608086015251848203601f190160a0860152610a3a565b905190601f198382030160c0840152602080835192838152019201905f5b8181106108dc575050500390f35b82518452859450602093840193909201916001016108ce565b60405162461bcd60e51b815260206004820152601260248201527144656e756e636961206e6f2065786973746560701b6044820152606490fd5b34610101575f36600319011261010157610947610c8f565b5f80546001600160a01b0319811682556001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e08280a3005b34610101575f366003190112610101576020600354604051908152f35b34610101576040366003190112610101576109bc6109fb565b6001600160a01b03165f90815260026020526040902080546024359190821015610101576020916109ec91610a11565b90549060031b1c604051908152f35b600435906001600160a01b038216820361010157565b8054821015610a26575f5260205f2001905f90565b634e487b7160e01b5f52603260045260245ffd5b805180835260209291819084018484015e5f828201840152601f01601f1916010190565b90600182811c92168015610a8c575b6020831014610a7857565b634e487b7160e01b5f52602260045260245ffd5b91607f1691610a6d565b5f9291815491610aa583610a5e565b8083529260018116908115610afa5750600114610ac157505050565b5f9081526020812093945091925b838310610ae0575060209250010190565b600181602092949394548385870101520191019190610acf565b915050602093945060ff929192191683830152151560051b010190565b60c0810190811067ffffffffffffffff82111761048a57604052565b90601f8019910116810190811067ffffffffffffffff82111761048a57604052565b90602080835192838152019201905f5b818110610b725750505090565b8251845260209384019390920191600101610b65565b92919267ffffffffffffffff821161048a5760405191610bb2601f8201601f191660200184610b33565b829481845281830111610101578281602093845f960137010152565b9080601f8301121561010157816020610be993359101610b88565b90565b90604051918281549182825260208201905f5260205f20925f5b818110610c1d575050610c1b92500383610b33565b565b8454835260019485019487945060209093019201610c06565b818110610c41575050565b5f8155600101610c36565b9190601f8111610c5b57505050565b610c1b925f5260205f20906020601f840160051c83019310610c85575b601f0160051c0190610c36565b9091508190610c78565b5f546001600160a01b03163303610ca257565b63118cdaa760e01b5f523360045260245ffdfea264697066735822122099716ddb0b0f092e7fd44ea787911ea46973b2d6fba442707f13859e9a132ca864736f6c634300081e0033",
+    "deployedBytecode": "60806040526004361015610011575f80fd5b5f3560e01c8063075fd0fa146109a35780631c1a2b4b14610986578063715018a61461092f57806372281b2014610767578063884d4610146106a25780638da5cb5b1461067b5780639db40a511461062b578063b02bad47146101055763f2fde38b1461007c575f80fd5b34610101576020366003190112610101576100956109fb565b61009d610c8f565b6001600160a01b031680156100ee575f80546001600160a01b03198116831782556001600160a01b0316907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09080a3005b631e4fbdf760e01b5f525f60045260245ffd5b5f80fd5b346101015760803660031901126101015760043567ffffffffffffffff811161010157610136903690600401610bce565b60243567ffffffffffffffff811161010157610156903690600401610bce565b60443567ffffffffffffffff8111610101573660238201121561010157610187903690602481600401359101610b88565b6064359267ffffffffffffffff841161010157366023850112156101015783600401359367ffffffffffffffff851161048a578460051b604051956101cf6020830188610b33565b8652602460208701918301019136831161010157602401905b82821061061b5750505060035460405161020181610b17565b33815260208101908382526040810186815260608201428152608083019187835260a08401948a8652865f52600160205260405f209460018060a01b039051166bffffffffffffffffffffffff60a01b86541617855560018501905180519067ffffffffffffffff821161048a576102838261027d8554610a5e565b85610c4c565b602090601f83116001146105b8576102b292915f91836105ad575b50508160011b915f199060031b1c19161790565b90555b518051600285019167ffffffffffffffff821161048a576102da8261027d8554610a5e565b602090601f831160011461054a5761030892915f918361053f5750508160011b915f199060031b1c19161790565b90555b516003830155518051600483019167ffffffffffffffff821161048a576103368261027d8554610a5e565b602090601f83116001146104d85791806103699260059695945f926104cd5750508160011b915f199060031b1c19161790565b90555b0190519081519167ffffffffffffffff831161048a57600160401b831161048a5760209082548484558085106104b2575b5001905f5260205f205f5b83811061049e5750505050335f52600260205260405f208054600160401b81101561048a576103dc91600182018155610a11565b819291549060031b91821b915f19901b19161790556003545f19811461047657610462610446936104547f4aaf5ddd77becca321430e9e94611156b8958de1684138b1a20e93e375bdbb7a9660016104719501600355604051968796608088526080880190610a3a565b908682036020880152610a3a565b908482036040860152610a3a565b82810360608401523395610b55565b0390a2005b634e487b7160e01b5f52601160045260245ffd5b634e487b7160e01b5f52604160045260245ffd5b6001906020845194019381840155016103a8565b6104c790845f5285845f209182019101610c36565b8961039d565b015190508c8061029e565b90601f19831691845f52815f20925f5b81811061052757509160019391856005989796941061050f575b505050811b01905561036c565b01515f1960f88460031b161c191690558b8080610502565b929360206001819287860151815501950193016104e8565b015190508d8061029e565b90601f19831691845f52815f20925f5b818110610595575090846001959493921061057d575b505050811b01905561030b565b01515f1960f88460031b161c191690558c8080610570565b9293602060018192878601518155019501930161055a565b015190508e8061029e565b90601f19831691845f52815f20925f5b81811061060357509084600195949392106105eb575b505050811b0190556102b5565b01515f1960f88460031b161c191690558d80806105de565b929360206001819287860151815501950193016105c8565b81358152602091820191016101e8565b34610101576020366003190112610101576001600160a01b0361064c6109fb565b165f52600260205261067761066360405f20610bec565b604051918291602083526020830190610b55565b0390f35b34610101575f366003190112610101575f546040516001600160a01b039091168152602090f35b34610101576020366003190112610101576004355f52600160205260405f2060018060a01b03815416610677604051926106ea846106e38160018501610a96565b0385610b33565b600461075460405161070a816107038160028801610a96565b0382610b33565b61072a6003850154946107236040518096819301610a96565b0384610b33565b610746604051978897885260a0602089015260a0880190610a3a565b908682036040880152610a3a565b9160608501528382036080850152610a3a565b3461010157602036600319011261010157600435606060a060405161078b81610b17565b5f81528260208201528260408201525f8382015282608082015201526003548110156108f5575f52600160205260405f206040516107c881610b17565b81546001600160a01b03168152604051916107ea836107238160018501610a96565b602082019283526108b060405191610809836107238160028501610a96565b604084019283526003810154906060850191825261089761084e6005604051936108418561083a8160048501610a96565b0386610b33565b6080890194855201610bec565b9460a0870195865261088460405198899860208a5260018060a01b0390511660208a01525160c060408a015260e0890190610a3a565b9051878203601f19016060890152610a3a565b9151608086015251848203601f190160a0860152610a3a565b905190601f198382030160c0840152602080835192838152019201905f5b8181106108dc575050500390f35b82518452859450602093840193909201916001016108ce565b60405162461bcd60e51b815260206004820152601260248201527144656e756e636961206e6f2065786973746560701b6044820152606490fd5b34610101575f36600319011261010157610947610c8f565b5f80546001600160a01b0319811682556001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e08280a3005b34610101575f366003190112610101576020600354604051908152f35b34610101576040366003190112610101576109bc6109fb565b6001600160a01b03165f90815260026020526040902080546024359190821015610101576020916109ec91610a11565b90549060031b1c604051908152f35b600435906001600160a01b038216820361010157565b8054821015610a26575f5260205f2001905f90565b634e487b7160e01b5f52603260045260245ffd5b805180835260209291819084018484015e5f828201840152601f01601f1916010190565b90600182811c92168015610a8c575b6020831014610a7857565b634e487b7160e01b5f52602260045260245ffd5b91607f1691610a6d565b5f9291815491610aa583610a5e565b8083529260018116908115610afa5750600114610ac157505050565b5f9081526020812093945091925b838310610ae0575060209250010190565b600181602092949394548385870101520191019190610acf565b915050602093945060ff929192191683830152151560051b010190565b60c0810190811067ffffffffffffffff82111761048a57604052565b90601f8019910116810190811067ffffffffffffffff82111761048a57604052565b90602080835192838152019201905f5b818110610b725750505090565b8251845260209384019390920191600101610b65565b92919267ffffffffffffffff821161048a5760405191610bb2601f8201601f191660200184610b33565b829481845281830111610101578281602093845f960137010152565b9080601f8301121561010157816020610be993359101610b88565b90565b90604051918281549182825260208201905f5260205f20925f5b818110610c1d575050610c1b92500383610b33565b565b8454835260019485019487945060209093019201610c06565b818110610c41575050565b5f8155600101610c36565b9190601f8111610c5b57505050565b610c1b925f5260205f20906020601f840160051c83019310610c85575b601f0160051c0190610c36565b9091508190610c78565b5f546001600160a01b03163303610ca257565b63118cdaa760e01b5f523360045260245ffdfea264697066735822122099716ddb0b0f092e7fd44ea787911ea46973b2d6fba442707f13859e9a132ca864736f6c634300081e0033",
+    "sourceMap": "166:2401:0:-:0;;;;;;;917:10;1273:26:1;1269:95;;1297:1;166:2401:0;;917:10;-1:-1:-1;;;;;;166:2401:0;;;;;;917:10;-1:-1:-1;;;;;166:2401:0;;;;3052:40:1;;1297:1;3052:40;166:2401:0;;;;;;;1269:95:1;1322:31;;;1297:1;1322:31;1297:1;1322:31;166:2401:0;;1297:1:1;1322:31;166:2401:0;;;",
+    "deployedSourceMap": "166:2401:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;;:::i;:::-;1500:62:1;;:::i;:::-;-1:-1:-1;;;;;166:2401:0;2627:22:1;;2623:91;;166:2401:0;;;-1:-1:-1;;;;;;166:2401:0;;;;;;-1:-1:-1;;;;;166:2401:0;;3052:40:1;;166:2401:0;3052:40:1;166:2401:0;2623:91:1;2672:31;;;166:2401:0;2672:31:1;166:2401:0;;;;;2672:31:1;166:2401:0;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1236:12;166:2401;;;;;;:::i;:::-;1318:10;166:2401;;;1282:235;;166:2401;;;;;1282:235;;166:2401;;;;1282:235;;1421:15;166:2401;;;1282:235;;166:2401;;;;1282:235;;;166:2401;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;:::i;:::-;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1236:12;166:2401;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;166:2401:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1318:10;;;;;166:2401;;;;;;;;;;-1:-1:-1;;;166:2401:0;;;;;;;1258:9;166:2401;;;;;:::i;:::-;;;;;;1236:12;166:2401;;;;;;;;;;;;;;1236:12;166:2401;;;;;;;;;;;1742:143;166:2401;1258:9;166:2401;;;1236:12;166:2401;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;:::i;:::-;;;;;;;;;;:::i;:::-;;;;;;;;1318:10;166:2401;;:::i;:::-;1742:143;;;166:2401;;;;;;;;;;;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1236:12;166:2401;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;;;;;;;1236:12;166:2401;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;;;;;;;1236:12;166:2401;;;;;;;;;;;;;;;;1258:9;166:2401;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;-1:-1:-1;;;;;166:2401:0;;:::i;:::-;;;;2097:23;166:2401;;;;;;;;:::i;:::-;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;;;;-1:-1:-1;;;;;166:2401:0;;;;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;;;;;;;;;;;;;;;;;;;;;433:45;166:2401;433:45;166:2401;433:45;166:2401;433:45;;166:2401;:::i;:::-;;;;:::i;:::-;;;;;;433:45;166:2401;433:45;;;;166:2401;:::i;:::-;;;;:::i;:::-;;433:45;;;166:2401;;;;;433:45;;;;;166:2401;:::i;:::-;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;:::i;:::-;;;;;;-1:-1:-1;;166:2401:0;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;2335:12;166:2401;2321:26;;166:2401;;;;;;;;;;;;;;;;:::i;:::-;;;-1:-1:-1;;;;;166:2401:0;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;2335:12;166:2401;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;:::i;:::-;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;-1:-1:-1;;166:2401:0;;;;;;:::i;:::-;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;;-1:-1:-1;;;166:2401:0;;;;;;;;;;;;-1:-1:-1;;;166:2401:0;;;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;1500:62:1;;:::i;:::-;166:2401:0;;;-1:-1:-1;;;;;;166:2401:0;;;;-1:-1:-1;;;;;166:2401:0;3052:40:1;166:2401:0;;3052:40:1;166:2401:0;;;;;;;-1:-1:-1;;166:2401:0;;;;;2546:12;166:2401;;;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;;:::i;:::-;-1:-1:-1;;;;;166:2401:0;;;;;533:60;166:2401;;;;;;;;;;;533:60;;;;;166:2401;533:60;;;;:::i;:::-;166:2401;;;;;;;;;;;;;;;;-1:-1:-1;;;;;166:2401:0;;;;;;:::o;:::-;;;;;;;;-1:-1:-1;166:2401:0;;-1:-1:-1;166:2401:0;;;-1:-1:-1;166:2401:0;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;-1:-1:-1;;166:2401:0;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;:::o;:::-;-1:-1:-1;166:2401:0;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;166:2401:0;;;;;:::i;:::-;;;;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;:::i;:::-;;:::o;:::-;;;;;;;;;;;;;;;;-1:-1:-1;166:2401:0;;-1:-1:-1;166:2401:0;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;:::i;:::-;:::o;:::-;;;;;;;;;;;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;:::o;:::-;;;-1:-1:-1;166:2401:0;;-1:-1:-1;166:2401:0;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;-1:-1:-1;166:2401:0;;;;1796:162:1;1710:6;166:2401:0;-1:-1:-1;;;;;166:2401:0;735:10:2;1855:23:1;1851:101;;1796:162::o;1851:101::-;1901:40;;;1710:6;1901:40;735:10:2;1901:40:1;166:2401:0;;1710:6:1;1901:40",
+    "sourcePath": "/Users/kevinkuo/Desktop/Hackathon/Nucleo/contracts/DenunciaAnonima.sol",
+    "compiler": {
+        "name": "solc",
+        "version": "0.8.30+commit.73712a01"
+    },
+    "ast": {
+        "absolutePath": "/Users/kevinkuo/Desktop/Hackathon/Nucleo/contracts/DenunciaAnonima.sol",
+        "exportedSymbols": {
+            "Context": [
+                323
+            ],
+            "DenunciaAnonima": [
+                145
+            ],
+            "Ownable": [
+                293
+            ]
+        },
+        "id": 146,
+        "license": "MIT",
+        "nodeType": "SourceUnit",
+        "nodes": [
+            {
+                "id": 1,
+                "literals": [
+                    "solidity",
+                    "^",
+                    "0.8",
+                    ".20"
+                ],
+                "nodeType": "PragmaDirective",
+                "src": "32:24:0"
+            },
+            {
+                "absolutePath": "/Users/kevinkuo/Desktop/Hackathon/Nucleo/node_modules/@openzeppelin/contracts/access/Ownable.sol",
+                "file": "/Users/kevinkuo/Desktop/Hackathon/Nucleo/node_modules/@openzeppelin/contracts/access/Ownable.sol",
+                "id": 2,
+                "nameLocation": "-1:-1:-1",
+                "nodeType": "ImportDirective",
+                "scope": 146,
+                "sourceUnit": 294,
+                "src": "58:106:0",
+                "symbolAliases": [],
+                "unitAlias": ""
+            },
+            {
+                "abstract": false,
+                "baseContracts": [
+                    {
+                        "baseName": {
+                            "id": 3,
+                            "name": "Ownable",
+                            "nameLocations": [
+                                "194:7:0"
+                            ],
+                            "nodeType": "IdentifierPath",
+                            "referencedDeclaration": 293,
+                            "src": "194:7:0"
+                        },
+                        "id": 4,
+                        "nodeType": "InheritanceSpecifier",
+                        "src": "194:7:0"
+                    }
+                ],
+                "canonicalName": "DenunciaAnonima",
+                "contractDependencies": [],
+                "contractKind": "contract",
+                "fullyImplemented": true,
+                "id": 145,
+                "linearizedBaseContracts": [
+                    145,
+                    293,
+                    323
+                ],
+                "name": "DenunciaAnonima",
+                "nameLocation": "175:15:0",
+                "nodeType": "ContractDefinition",
+                "nodes": [
+                    {
+                        "canonicalName": "DenunciaAnonima.Denuncia",
+                        "id": 18,
+                        "members": [
+                            {
+                                "constant": false,
+                                "id": 6,
+                                "mutability": "mutable",
+                                "name": "denunciante",
+                                "nameLocation": "242:11:0",
+                                "nodeType": "VariableDeclaration",
+                                "scope": 18,
+                                "src": "234:19:0",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                },
+                                "typeName": {
+                                    "id": 5,
+                                    "name": "address",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "234:7:0",
+                                    "stateMutability": "nonpayable",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_address",
+                                        "typeString": "address"
+                                    }
+                                },
+                                "visibility": "internal"
+                            },
+                            {
+                                "constant": false,
+                                "id": 8,
+                                "mutability": "mutable",
+                                "name": "tipoAcoso",
+                                "nameLocation": "270:9:0",
+                                "nodeType": "VariableDeclaration",
+                                "scope": 18,
+                                "src": "263:16:0",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_string_storage_ptr",
+                                    "typeString": "string"
+                                },
+                                "typeName": {
+                                    "id": 7,
+                                    "name": "string",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "263:6:0",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_string_storage_ptr",
+                                        "typeString": "string"
+                                    }
+                                },
+                                "visibility": "internal"
+                            },
+                            {
+                                "constant": false,
+                                "id": 10,
+                                "mutability": "mutable",
+                                "name": "ipfsHash",
+                                "nameLocation": "296:8:0",
+                                "nodeType": "VariableDeclaration",
+                                "scope": 18,
+                                "src": "289:15:0",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_string_storage_ptr",
+                                    "typeString": "string"
+                                },
+                                "typeName": {
+                                    "id": 9,
+                                    "name": "string",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "289:6:0",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_string_storage_ptr",
+                                        "typeString": "string"
+                                    }
+                                },
+                                "visibility": "internal"
+                            },
+                            {
+                                "constant": false,
+                                "id": 12,
+                                "mutability": "mutable",
+                                "name": "timestamp",
+                                "nameLocation": "322:9:0",
+                                "nodeType": "VariableDeclaration",
+                                "scope": 18,
+                                "src": "314:17:0",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                },
+                                "typeName": {
+                                    "id": 11,
+                                    "name": "uint256",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "314:7:0",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    }
+                                },
+                                "visibility": "internal"
+                            },
+                            {
+                                "constant": false,
+                                "id": 14,
+                                "mutability": "mutable",
+                                "name": "proof",
+                                "nameLocation": "347:5:0",
+                                "nodeType": "VariableDeclaration",
+                                "scope": 18,
+                                "src": "341:11:0",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_bytes_storage_ptr",
+                                    "typeString": "bytes"
+                                },
+                                "typeName": {
+                                    "id": 13,
+                                    "name": "bytes",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "341:5:0",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_bytes_storage_ptr",
+                                        "typeString": "bytes"
+                                    }
+                                },
+                                "visibility": "internal"
+                            },
+                            {
+                                "constant": false,
+                                "id": 17,
+                                "mutability": "mutable",
+                                "name": "publicSignals",
+                                "nameLocation": "372:13:0",
+                                "nodeType": "VariableDeclaration",
+                                "scope": 18,
+                                "src": "362:23:0",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                                    "typeString": "uint256[]"
+                                },
+                                "typeName": {
+                                    "baseType": {
+                                        "id": 15,
+                                        "name": "uint256",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "362:7:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "id": 16,
+                                    "nodeType": "ArrayTypeName",
+                                    "src": "362:9:0",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                                        "typeString": "uint256[]"
+                                    }
+                                },
+                                "visibility": "internal"
+                            }
+                        ],
+                        "name": "Denuncia",
+                        "nameLocation": "215:8:0",
+                        "nodeType": "StructDefinition",
+                        "scope": 145,
+                        "src": "208:184:0",
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "884d4610",
+                        "id": 23,
+                        "mutability": "mutable",
+                        "name": "denuncias",
+                        "nameLocation": "469:9:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 145,
+                        "src": "433:45:0",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Denuncia_$18_storage_$",
+                            "typeString": "mapping(uint256 => struct DenunciaAnonima.Denuncia)"
+                        },
+                        "typeName": {
+                            "id": 22,
+                            "keyName": "",
+                            "keyNameLocation": "-1:-1:-1",
+                            "keyType": {
+                                "id": 19,
+                                "name": "uint256",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "441:7:0",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "433:28:0",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Denuncia_$18_storage_$",
+                                "typeString": "mapping(uint256 => struct DenunciaAnonima.Denuncia)"
+                            },
+                            "valueName": "",
+                            "valueNameLocation": "-1:-1:-1",
+                            "valueType": {
+                                "id": 21,
+                                "nodeType": "UserDefinedTypeName",
+                                "pathNode": {
+                                    "id": 20,
+                                    "name": "Denuncia",
+                                    "nameLocations": [
+                                        "452:8:0"
+                                    ],
+                                    "nodeType": "IdentifierPath",
+                                    "referencedDeclaration": 18,
+                                    "src": "452:8:0"
+                                },
+                                "referencedDeclaration": 18,
+                                "src": "452:8:0",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_struct$_Denuncia_$18_storage_ptr",
+                                    "typeString": "struct DenunciaAnonima.Denuncia"
+                                }
+                            }
+                        },
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "075fd0fa",
+                        "id": 28,
+                        "mutability": "mutable",
+                        "name": "denunciasPorDenunciante",
+                        "nameLocation": "570:23:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 145,
+                        "src": "533:60:0",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_array$_t_uint256_$dyn_storage_$",
+                            "typeString": "mapping(address => uint256[])"
+                        },
+                        "typeName": {
+                            "id": 27,
+                            "keyName": "",
+                            "keyNameLocation": "-1:-1:-1",
+                            "keyType": {
+                                "id": 24,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "541:7:0",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "533:29:0",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_array$_t_uint256_$dyn_storage_$",
+                                "typeString": "mapping(address => uint256[])"
+                            },
+                            "valueName": "",
+                            "valueNameLocation": "-1:-1:-1",
+                            "valueType": {
+                                "baseType": {
+                                    "id": 25,
+                                    "name": "uint256",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "552:7:0",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    }
+                                },
+                                "id": 26,
+                                "nodeType": "ArrayTypeName",
+                                "src": "552:9:0",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                                    "typeString": "uint256[]"
+                                }
+                            }
+                        },
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "id": 30,
+                        "mutability": "mutable",
+                        "name": "_denunciaIds",
+                        "nameLocation": "645:12:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 145,
+                        "src": "629:28:0",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                        },
+                        "typeName": {
+                            "id": 29,
+                            "name": "uint256",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "629:7:0",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                            }
+                        },
+                        "visibility": "private"
+                    },
+                    {
+                        "anonymous": false,
+                        "eventSelector": "4aaf5ddd77becca321430e9e94611156b8958de1684138b1a20e93e375bdbb7a",
+                        "id": 43,
+                        "name": "DenunciaCreada",
+                        "nameLocation": "726:14:0",
+                        "nodeType": "EventDefinition",
+                        "parameters": {
+                            "id": 42,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 32,
+                                    "indexed": true,
+                                    "mutability": "mutable",
+                                    "name": "denunciante",
+                                    "nameLocation": "766:11:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 43,
+                                    "src": "750:27:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_address",
+                                        "typeString": "address"
+                                    },
+                                    "typeName": {
+                                        "id": 31,
+                                        "name": "address",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "750:7:0",
+                                        "stateMutability": "nonpayable",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_address",
+                                            "typeString": "address"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 34,
+                                    "indexed": false,
+                                    "mutability": "mutable",
+                                    "name": "tipoAcoso",
+                                    "nameLocation": "794:9:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 43,
+                                    "src": "787:16:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_string_memory_ptr",
+                                        "typeString": "string"
+                                    },
+                                    "typeName": {
+                                        "id": 33,
+                                        "name": "string",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "787:6:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_string_storage_ptr",
+                                            "typeString": "string"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 36,
+                                    "indexed": false,
+                                    "mutability": "mutable",
+                                    "name": "ipfsHash",
+                                    "nameLocation": "820:8:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 43,
+                                    "src": "813:15:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_string_memory_ptr",
+                                        "typeString": "string"
+                                    },
+                                    "typeName": {
+                                        "id": 35,
+                                        "name": "string",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "813:6:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_string_storage_ptr",
+                                            "typeString": "string"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 38,
+                                    "indexed": false,
+                                    "mutability": "mutable",
+                                    "name": "proof",
+                                    "nameLocation": "844:5:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 43,
+                                    "src": "838:11:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_bytes_memory_ptr",
+                                        "typeString": "bytes"
+                                    },
+                                    "typeName": {
+                                        "id": 37,
+                                        "name": "bytes",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "838:5:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_bytes_storage_ptr",
+                                            "typeString": "bytes"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 41,
+                                    "indexed": false,
+                                    "mutability": "mutable",
+                                    "name": "publicSignals",
+                                    "nameLocation": "869:13:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 43,
+                                    "src": "859:23:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                        "typeString": "uint256[]"
+                                    },
+                                    "typeName": {
+                                        "baseType": {
+                                            "id": 39,
+                                            "name": "uint256",
+                                            "nodeType": "ElementaryTypeName",
+                                            "src": "859:7:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_uint256",
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "id": 40,
+                                        "nodeType": "ArrayTypeName",
+                                        "src": "859:9:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                                            "typeString": "uint256[]"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "740:148:0"
+                        },
+                        "src": "720:169:0"
+                    },
+                    {
+                        "body": {
+                            "id": 50,
+                            "nodeType": "Block",
+                            "src": "929:2:0",
+                            "statements": []
+                        },
+                        "id": 51,
+                        "implemented": true,
+                        "kind": "constructor",
+                        "modifiers": [
+                            {
+                                "arguments": [
+                                    {
+                                        "expression": {
+                                            "id": 46,
+                                            "name": "msg",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 4294967281,
+                                            "src": "917:3:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_magic_message",
+                                                "typeString": "msg"
+                                            }
+                                        },
+                                        "id": 47,
+                                        "isConstant": false,
+                                        "isLValue": false,
+                                        "isPure": false,
+                                        "lValueRequested": false,
+                                        "memberLocation": "921:6:0",
+                                        "memberName": "sender",
+                                        "nodeType": "MemberAccess",
+                                        "src": "917:10:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_address",
+                                            "typeString": "address"
+                                        }
+                                    }
+                                ],
+                                "id": 48,
+                                "kind": "baseConstructorSpecifier",
+                                "modifierName": {
+                                    "id": 45,
+                                    "name": "Ownable",
+                                    "nameLocations": [
+                                        "909:7:0"
+                                    ],
+                                    "nodeType": "IdentifierPath",
+                                    "referencedDeclaration": 293,
+                                    "src": "909:7:0"
+                                },
+                                "nodeType": "ModifierInvocation",
+                                "src": "909:19:0"
+                            }
+                        ],
+                        "name": "",
+                        "nameLocation": "-1:-1:-1",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 44,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "906:2:0"
+                        },
+                        "returnParameters": {
+                            "id": 49,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "929:0:0"
+                        },
+                        "scope": 145,
+                        "src": "895:36:0",
+                        "stateMutability": "nonpayable",
+                        "virtual": false,
+                        "visibility": "public"
+                    },
+                    {
+                        "body": {
+                            "id": 102,
+                            "nodeType": "Block",
+                            "src": "1170:722:0",
+                            "statements": [
+                                {
+                                    "assignments": [
+                                        64
+                                    ],
+                                    "declarations": [
+                                        {
+                                            "constant": false,
+                                            "id": 64,
+                                            "mutability": "mutable",
+                                            "name": "denunciaId",
+                                            "nameLocation": "1223:10:0",
+                                            "nodeType": "VariableDeclaration",
+                                            "scope": 102,
+                                            "src": "1215:18:0",
+                                            "stateVariable": false,
+                                            "storageLocation": "default",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_uint256",
+                                                "typeString": "uint256"
+                                            },
+                                            "typeName": {
+                                                "id": 63,
+                                                "name": "uint256",
+                                                "nodeType": "ElementaryTypeName",
+                                                "src": "1215:7:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_uint256",
+                                                    "typeString": "uint256"
+                                                }
+                                            },
+                                            "visibility": "internal"
+                                        }
+                                    ],
+                                    "id": 66,
+                                    "initialValue": {
+                                        "id": 65,
+                                        "name": "_denunciaIds",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 30,
+                                        "src": "1236:12:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "nodeType": "VariableDeclarationStatement",
+                                    "src": "1215:33:0"
+                                },
+                                {
+                                    "expression": {
+                                        "id": 80,
+                                        "isConstant": false,
+                                        "isLValue": false,
+                                        "isPure": false,
+                                        "lValueRequested": false,
+                                        "leftHandSide": {
+                                            "baseExpression": {
+                                                "id": 67,
+                                                "name": "denuncias",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 23,
+                                                "src": "1258:9:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Denuncia_$18_storage_$",
+                                                    "typeString": "mapping(uint256 => struct DenunciaAnonima.Denuncia storage ref)"
+                                                }
+                                            },
+                                            "id": 69,
+                                            "indexExpression": {
+                                                "id": 68,
+                                                "name": "denunciaId",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 64,
+                                                "src": "1268:10:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_uint256",
+                                                    "typeString": "uint256"
+                                                }
+                                            },
+                                            "isConstant": false,
+                                            "isLValue": true,
+                                            "isPure": false,
+                                            "lValueRequested": true,
+                                            "nodeType": "IndexAccess",
+                                            "src": "1258:21:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_struct$_Denuncia_$18_storage",
+                                                "typeString": "struct DenunciaAnonima.Denuncia storage ref"
+                                            }
+                                        },
+                                        "nodeType": "Assignment",
+                                        "operator": "=",
+                                        "rightHandSide": {
+                                            "arguments": [
+                                                {
+                                                    "expression": {
+                                                        "id": 71,
+                                                        "name": "msg",
+                                                        "nodeType": "Identifier",
+                                                        "overloadedDeclarations": [],
+                                                        "referencedDeclaration": 4294967281,
+                                                        "src": "1318:3:0",
+                                                        "typeDescriptions": {
+                                                            "typeIdentifier": "t_magic_message",
+                                                            "typeString": "msg"
+                                                        }
+                                                    },
+                                                    "id": 72,
+                                                    "isConstant": false,
+                                                    "isLValue": false,
+                                                    "isPure": false,
+                                                    "lValueRequested": false,
+                                                    "memberLocation": "1322:6:0",
+                                                    "memberName": "sender",
+                                                    "nodeType": "MemberAccess",
+                                                    "src": "1318:10:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_address",
+                                                        "typeString": "address"
+                                                    }
+                                                },
+                                                {
+                                                    "id": 73,
+                                                    "name": "_tipoAcoso",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 53,
+                                                    "src": "1353:10:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_string_memory_ptr",
+                                                        "typeString": "string memory"
+                                                    }
+                                                },
+                                                {
+                                                    "id": 74,
+                                                    "name": "_ipfsHash",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 55,
+                                                    "src": "1387:9:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_string_memory_ptr",
+                                                        "typeString": "string memory"
+                                                    }
+                                                },
+                                                {
+                                                    "expression": {
+                                                        "id": 75,
+                                                        "name": "block",
+                                                        "nodeType": "Identifier",
+                                                        "overloadedDeclarations": [],
+                                                        "referencedDeclaration": 4294967292,
+                                                        "src": "1421:5:0",
+                                                        "typeDescriptions": {
+                                                            "typeIdentifier": "t_magic_block",
+                                                            "typeString": "block"
+                                                        }
+                                                    },
+                                                    "id": 76,
+                                                    "isConstant": false,
+                                                    "isLValue": false,
+                                                    "isPure": false,
+                                                    "lValueRequested": false,
+                                                    "memberLocation": "1427:9:0",
+                                                    "memberName": "timestamp",
+                                                    "nodeType": "MemberAccess",
+                                                    "src": "1421:15:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_uint256",
+                                                        "typeString": "uint256"
+                                                    }
+                                                },
+                                                {
+                                                    "id": 77,
+                                                    "name": "_proof",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 57,
+                                                    "src": "1457:6:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_bytes_memory_ptr",
+                                                        "typeString": "bytes memory"
+                                                    }
+                                                },
+                                                {
+                                                    "id": 78,
+                                                    "name": "_publicSignals",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 60,
+                                                    "src": "1492:14:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                                        "typeString": "uint256[] memory"
+                                                    }
+                                                }
+                                            ],
+                                            "expression": {
+                                                "argumentTypes": [
+                                                    {
+                                                        "typeIdentifier": "t_address",
+                                                        "typeString": "address"
+                                                    },
+                                                    {
+                                                        "typeIdentifier": "t_string_memory_ptr",
+                                                        "typeString": "string memory"
+                                                    },
+                                                    {
+                                                        "typeIdentifier": "t_string_memory_ptr",
+                                                        "typeString": "string memory"
+                                                    },
+                                                    {
+                                                        "typeIdentifier": "t_uint256",
+                                                        "typeString": "uint256"
+                                                    },
+                                                    {
+                                                        "typeIdentifier": "t_bytes_memory_ptr",
+                                                        "typeString": "bytes memory"
+                                                    },
+                                                    {
+                                                        "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                                        "typeString": "uint256[] memory"
+                                                    }
+                                                ],
+                                                "id": 70,
+                                                "name": "Denuncia",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 18,
+                                                "src": "1282:8:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_type$_t_struct$_Denuncia_$18_storage_ptr_$",
+                                                    "typeString": "type(struct DenunciaAnonima.Denuncia storage pointer)"
+                                                }
+                                            },
+                                            "id": 79,
+                                            "isConstant": false,
+                                            "isLValue": false,
+                                            "isPure": false,
+                                            "kind": "structConstructorCall",
+                                            "lValueRequested": false,
+                                            "nameLocations": [
+                                                "1305:11:0",
+                                                "1342:9:0",
+                                                "1377:8:0",
+                                                "1410:9:0",
+                                                "1450:5:0",
+                                                "1477:13:0"
+                                            ],
+                                            "names": [
+                                                "denunciante",
+                                                "tipoAcoso",
+                                                "ipfsHash",
+                                                "timestamp",
+                                                "proof",
+                                                "publicSignals"
+                                            ],
+                                            "nodeType": "FunctionCall",
+                                            "src": "1282:235:0",
+                                            "tryCall": false,
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_struct$_Denuncia_$18_memory_ptr",
+                                                "typeString": "struct DenunciaAnonima.Denuncia memory"
+                                            }
+                                        },
+                                        "src": "1258:259:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_struct$_Denuncia_$18_storage",
+                                            "typeString": "struct DenunciaAnonima.Denuncia storage ref"
+                                        }
+                                    },
+                                    "id": 81,
+                                    "nodeType": "ExpressionStatement",
+                                    "src": "1258:259:0"
+                                },
+                                {
+                                    "expression": {
+                                        "arguments": [
+                                            {
+                                                "id": 87,
+                                                "name": "denunciaId",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 64,
+                                                "src": "1627:10:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_uint256",
+                                                    "typeString": "uint256"
+                                                }
+                                            }
+                                        ],
+                                        "expression": {
+                                            "argumentTypes": [
+                                                {
+                                                    "typeIdentifier": "t_uint256",
+                                                    "typeString": "uint256"
+                                                }
+                                            ],
+                                            "expression": {
+                                                "baseExpression": {
+                                                    "id": 82,
+                                                    "name": "denunciasPorDenunciante",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 28,
+                                                    "src": "1586:23:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_mapping$_t_address_$_t_array$_t_uint256_$dyn_storage_$",
+                                                        "typeString": "mapping(address => uint256[] storage ref)"
+                                                    }
+                                                },
+                                                "id": 85,
+                                                "indexExpression": {
+                                                    "expression": {
+                                                        "id": 83,
+                                                        "name": "msg",
+                                                        "nodeType": "Identifier",
+                                                        "overloadedDeclarations": [],
+                                                        "referencedDeclaration": 4294967281,
+                                                        "src": "1610:3:0",
+                                                        "typeDescriptions": {
+                                                            "typeIdentifier": "t_magic_message",
+                                                            "typeString": "msg"
+                                                        }
+                                                    },
+                                                    "id": 84,
+                                                    "isConstant": false,
+                                                    "isLValue": false,
+                                                    "isPure": false,
+                                                    "lValueRequested": false,
+                                                    "memberLocation": "1614:6:0",
+                                                    "memberName": "sender",
+                                                    "nodeType": "MemberAccess",
+                                                    "src": "1610:10:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_address",
+                                                        "typeString": "address"
+                                                    }
+                                                },
+                                                "isConstant": false,
+                                                "isLValue": true,
+                                                "isPure": false,
+                                                "lValueRequested": false,
+                                                "nodeType": "IndexAccess",
+                                                "src": "1586:35:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_array$_t_uint256_$dyn_storage",
+                                                    "typeString": "uint256[] storage ref"
+                                                }
+                                            },
+                                            "id": 86,
+                                            "isConstant": false,
+                                            "isLValue": false,
+                                            "isPure": false,
+                                            "lValueRequested": false,
+                                            "memberLocation": "1622:4:0",
+                                            "memberName": "push",
+                                            "nodeType": "MemberAccess",
+                                            "src": "1586:40:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_function_arraypush_nonpayable$_t_array$_t_uint256_$dyn_storage_ptr_$_t_uint256_$returns$__$attached_to$_t_array$_t_uint256_$dyn_storage_ptr_$",
+                                                "typeString": "function (uint256[] storage pointer,uint256)"
+                                            }
+                                        },
+                                        "id": 88,
+                                        "isConstant": false,
+                                        "isLValue": false,
+                                        "isPure": false,
+                                        "kind": "functionCall",
+                                        "lValueRequested": false,
+                                        "nameLocations": [],
+                                        "names": [],
+                                        "nodeType": "FunctionCall",
+                                        "src": "1586:52:0",
+                                        "tryCall": false,
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_tuple$__$",
+                                            "typeString": "tuple()"
+                                        }
+                                    },
+                                    "id": 89,
+                                    "nodeType": "ExpressionStatement",
+                                    "src": "1586:52:0"
+                                },
+                                {
+                                    "expression": {
+                                        "id": 91,
+                                        "isConstant": false,
+                                        "isLValue": false,
+                                        "isPure": false,
+                                        "lValueRequested": false,
+                                        "nodeType": "UnaryOperation",
+                                        "operator": "++",
+                                        "prefix": false,
+                                        "src": "1684:14:0",
+                                        "subExpression": {
+                                            "id": 90,
+                                            "name": "_denunciaIds",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 30,
+                                            "src": "1684:12:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_uint256",
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "id": 92,
+                                    "nodeType": "ExpressionStatement",
+                                    "src": "1684:14:0"
+                                },
+                                {
+                                    "eventCall": {
+                                        "arguments": [
+                                            {
+                                                "expression": {
+                                                    "id": 94,
+                                                    "name": "msg",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 4294967281,
+                                                    "src": "1770:3:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_magic_message",
+                                                        "typeString": "msg"
+                                                    }
+                                                },
+                                                "id": 95,
+                                                "isConstant": false,
+                                                "isLValue": false,
+                                                "isPure": false,
+                                                "lValueRequested": false,
+                                                "memberLocation": "1774:6:0",
+                                                "memberName": "sender",
+                                                "nodeType": "MemberAccess",
+                                                "src": "1770:10:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_address",
+                                                    "typeString": "address"
+                                                }
+                                            },
+                                            {
+                                                "id": 96,
+                                                "name": "_tipoAcoso",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 53,
+                                                "src": "1794:10:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_string_memory_ptr",
+                                                    "typeString": "string memory"
+                                                }
+                                            },
+                                            {
+                                                "id": 97,
+                                                "name": "_ipfsHash",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 55,
+                                                "src": "1818:9:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_string_memory_ptr",
+                                                    "typeString": "string memory"
+                                                }
+                                            },
+                                            {
+                                                "id": 98,
+                                                "name": "_proof",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 57,
+                                                "src": "1841:6:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_bytes_memory_ptr",
+                                                    "typeString": "bytes memory"
+                                                }
+                                            },
+                                            {
+                                                "id": 99,
+                                                "name": "_publicSignals",
+                                                "nodeType": "Identifier",
+                                                "overloadedDeclarations": [],
+                                                "referencedDeclaration": 60,
+                                                "src": "1861:14:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                                    "typeString": "uint256[] memory"
+                                                }
+                                            }
+                                        ],
+                                        "expression": {
+                                            "argumentTypes": [
+                                                {
+                                                    "typeIdentifier": "t_address",
+                                                    "typeString": "address"
+                                                },
+                                                {
+                                                    "typeIdentifier": "t_string_memory_ptr",
+                                                    "typeString": "string memory"
+                                                },
+                                                {
+                                                    "typeIdentifier": "t_string_memory_ptr",
+                                                    "typeString": "string memory"
+                                                },
+                                                {
+                                                    "typeIdentifier": "t_bytes_memory_ptr",
+                                                    "typeString": "bytes memory"
+                                                },
+                                                {
+                                                    "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                                    "typeString": "uint256[] memory"
+                                                }
+                                            ],
+                                            "id": 93,
+                                            "name": "DenunciaCreada",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 43,
+                                            "src": "1742:14:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_string_memory_ptr_$_t_string_memory_ptr_$_t_bytes_memory_ptr_$_t_array$_t_uint256_$dyn_memory_ptr_$returns$__$",
+                                                "typeString": "function (address,string memory,string memory,bytes memory,uint256[] memory)"
+                                            }
+                                        },
+                                        "id": 100,
+                                        "isConstant": false,
+                                        "isLValue": false,
+                                        "isPure": false,
+                                        "kind": "functionCall",
+                                        "lValueRequested": false,
+                                        "nameLocations": [],
+                                        "names": [],
+                                        "nodeType": "FunctionCall",
+                                        "src": "1742:143:0",
+                                        "tryCall": false,
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_tuple$__$",
+                                            "typeString": "tuple()"
+                                        }
+                                    },
+                                    "id": 101,
+                                    "nodeType": "EmitStatement",
+                                    "src": "1737:148:0"
+                                }
+                            ]
+                        },
+                        "functionSelector": "b02bad47",
+                        "id": 103,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "crearDenuncia",
+                        "nameLocation": "1006:13:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 61,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 53,
+                                    "mutability": "mutable",
+                                    "name": "_tipoAcoso",
+                                    "nameLocation": "1043:10:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 103,
+                                    "src": "1029:24:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "memory",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_string_memory_ptr",
+                                        "typeString": "string"
+                                    },
+                                    "typeName": {
+                                        "id": 52,
+                                        "name": "string",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "1029:6:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_string_storage_ptr",
+                                            "typeString": "string"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 55,
+                                    "mutability": "mutable",
+                                    "name": "_ipfsHash",
+                                    "nameLocation": "1077:9:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 103,
+                                    "src": "1063:23:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "memory",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_string_memory_ptr",
+                                        "typeString": "string"
+                                    },
+                                    "typeName": {
+                                        "id": 54,
+                                        "name": "string",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "1063:6:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_string_storage_ptr",
+                                            "typeString": "string"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 57,
+                                    "mutability": "mutable",
+                                    "name": "_proof",
+                                    "nameLocation": "1109:6:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 103,
+                                    "src": "1096:19:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "memory",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_bytes_memory_ptr",
+                                        "typeString": "bytes"
+                                    },
+                                    "typeName": {
+                                        "id": 56,
+                                        "name": "bytes",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "1096:5:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_bytes_storage_ptr",
+                                            "typeString": "bytes"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                },
+                                {
+                                    "constant": false,
+                                    "id": 60,
+                                    "mutability": "mutable",
+                                    "name": "_publicSignals",
+                                    "nameLocation": "1142:14:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 103,
+                                    "src": "1125:31:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "memory",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                        "typeString": "uint256[]"
+                                    },
+                                    "typeName": {
+                                        "baseType": {
+                                            "id": 58,
+                                            "name": "uint256",
+                                            "nodeType": "ElementaryTypeName",
+                                            "src": "1125:7:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_uint256",
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "id": 59,
+                                        "nodeType": "ArrayTypeName",
+                                        "src": "1125:9:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                                            "typeString": "uint256[]"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "1019:143:0"
+                        },
+                        "returnParameters": {
+                            "id": 62,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "1170:0:0"
+                        },
+                        "scope": 145,
+                        "src": "997:895:0",
+                        "stateMutability": "nonpayable",
+                        "virtual": false,
+                        "visibility": "public"
+                    },
+                    {
+                        "body": {
+                            "id": 115,
+                            "nodeType": "Block",
+                            "src": "2080:61:0",
+                            "statements": [
+                                {
+                                    "expression": {
+                                        "baseExpression": {
+                                            "id": 111,
+                                            "name": "denunciasPorDenunciante",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 28,
+                                            "src": "2097:23:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_mapping$_t_address_$_t_array$_t_uint256_$dyn_storage_$",
+                                                "typeString": "mapping(address => uint256[] storage ref)"
+                                            }
+                                        },
+                                        "id": 113,
+                                        "indexExpression": {
+                                            "id": 112,
+                                            "name": "_denunciante",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 105,
+                                            "src": "2121:12:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_address",
+                                                "typeString": "address"
+                                            }
+                                        },
+                                        "isConstant": false,
+                                        "isLValue": true,
+                                        "isPure": false,
+                                        "lValueRequested": false,
+                                        "nodeType": "IndexAccess",
+                                        "src": "2097:37:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage",
+                                            "typeString": "uint256[] storage ref"
+                                        }
+                                    },
+                                    "functionReturnParameters": 110,
+                                    "id": 114,
+                                    "nodeType": "Return",
+                                    "src": "2090:44:0"
+                                }
+                            ]
+                        },
+                        "functionSelector": "9db40a51",
+                        "id": 116,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "obtenerDenunciasPorDenunciante",
+                        "nameLocation": "1974:30:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 106,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 105,
+                                    "mutability": "mutable",
+                                    "name": "_denunciante",
+                                    "nameLocation": "2022:12:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 116,
+                                    "src": "2014:20:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_address",
+                                        "typeString": "address"
+                                    },
+                                    "typeName": {
+                                        "id": 104,
+                                        "name": "address",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "2014:7:0",
+                                        "stateMutability": "nonpayable",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_address",
+                                            "typeString": "address"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "2004:36:0"
+                        },
+                        "returnParameters": {
+                            "id": 110,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 109,
+                                    "mutability": "mutable",
+                                    "name": "",
+                                    "nameLocation": "-1:-1:-1",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 116,
+                                    "src": "2062:16:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "memory",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                                        "typeString": "uint256[]"
+                                    },
+                                    "typeName": {
+                                        "baseType": {
+                                            "id": 107,
+                                            "name": "uint256",
+                                            "nodeType": "ElementaryTypeName",
+                                            "src": "2062:7:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_uint256",
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "id": 108,
+                                        "nodeType": "ArrayTypeName",
+                                        "src": "2062:9:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                                            "typeString": "uint256[]"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "2061:18:0"
+                        },
+                        "scope": 145,
+                        "src": "1965:176:0",
+                        "stateMutability": "view",
+                        "virtual": false,
+                        "visibility": "public"
+                    },
+                    {
+                        "body": {
+                            "id": 135,
+                            "nodeType": "Block",
+                            "src": "2303:113:0",
+                            "statements": [
+                                {
+                                    "expression": {
+                                        "arguments": [
+                                            {
+                                                "commonType": {
+                                                    "typeIdentifier": "t_uint256",
+                                                    "typeString": "uint256"
+                                                },
+                                                "id": 127,
+                                                "isConstant": false,
+                                                "isLValue": false,
+                                                "isPure": false,
+                                                "lValueRequested": false,
+                                                "leftExpression": {
+                                                    "id": 125,
+                                                    "name": "_denunciaId",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 118,
+                                                    "src": "2321:11:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_uint256",
+                                                        "typeString": "uint256"
+                                                    }
+                                                },
+                                                "nodeType": "BinaryOperation",
+                                                "operator": "<",
+                                                "rightExpression": {
+                                                    "id": 126,
+                                                    "name": "_denunciaIds",
+                                                    "nodeType": "Identifier",
+                                                    "overloadedDeclarations": [],
+                                                    "referencedDeclaration": 30,
+                                                    "src": "2335:12:0",
+                                                    "typeDescriptions": {
+                                                        "typeIdentifier": "t_uint256",
+                                                        "typeString": "uint256"
+                                                    }
+                                                },
+                                                "src": "2321:26:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_bool",
+                                                    "typeString": "bool"
+                                                }
+                                            },
+                                            {
+                                                "hexValue": "44656e756e636961206e6f20657869737465",
+                                                "id": 128,
+                                                "isConstant": false,
+                                                "isLValue": false,
+                                                "isPure": true,
+                                                "kind": "string",
+                                                "lValueRequested": false,
+                                                "nodeType": "Literal",
+                                                "src": "2349:20:0",
+                                                "typeDescriptions": {
+                                                    "typeIdentifier": "t_stringliteral_b4112693e673f298228d1b4a0ae748773f306c1aae23d63d9d9aceeffd92c8dc",
+                                                    "typeString": "literal_string \"Denuncia no existe\""
+                                                },
+                                                "value": "Denuncia no existe"
+                                            }
+                                        ],
+                                        "expression": {
+                                            "argumentTypes": [
+                                                {
+                                                    "typeIdentifier": "t_bool",
+                                                    "typeString": "bool"
+                                                },
+                                                {
+                                                    "typeIdentifier": "t_stringliteral_b4112693e673f298228d1b4a0ae748773f306c1aae23d63d9d9aceeffd92c8dc",
+                                                    "typeString": "literal_string \"Denuncia no existe\""
+                                                }
+                                            ],
+                                            "id": 124,
+                                            "name": "require",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [
+                                                4294967278,
+                                                4294967278,
+                                                4294967278
+                                            ],
+                                            "referencedDeclaration": 4294967278,
+                                            "src": "2313:7:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                                                "typeString": "function (bool,string memory) pure"
+                                            }
+                                        },
+                                        "id": 129,
+                                        "isConstant": false,
+                                        "isLValue": false,
+                                        "isPure": false,
+                                        "kind": "functionCall",
+                                        "lValueRequested": false,
+                                        "nameLocations": [],
+                                        "names": [],
+                                        "nodeType": "FunctionCall",
+                                        "src": "2313:57:0",
+                                        "tryCall": false,
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_tuple$__$",
+                                            "typeString": "tuple()"
+                                        }
+                                    },
+                                    "id": 130,
+                                    "nodeType": "ExpressionStatement",
+                                    "src": "2313:57:0"
+                                },
+                                {
+                                    "expression": {
+                                        "baseExpression": {
+                                            "id": 131,
+                                            "name": "denuncias",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 23,
+                                            "src": "2387:9:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Denuncia_$18_storage_$",
+                                                "typeString": "mapping(uint256 => struct DenunciaAnonima.Denuncia storage ref)"
+                                            }
+                                        },
+                                        "id": 133,
+                                        "indexExpression": {
+                                            "id": 132,
+                                            "name": "_denunciaId",
+                                            "nodeType": "Identifier",
+                                            "overloadedDeclarations": [],
+                                            "referencedDeclaration": 118,
+                                            "src": "2397:11:0",
+                                            "typeDescriptions": {
+                                                "typeIdentifier": "t_uint256",
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "isConstant": false,
+                                        "isLValue": true,
+                                        "isPure": false,
+                                        "lValueRequested": false,
+                                        "nodeType": "IndexAccess",
+                                        "src": "2387:22:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_struct$_Denuncia_$18_storage",
+                                            "typeString": "struct DenunciaAnonima.Denuncia storage ref"
+                                        }
+                                    },
+                                    "functionReturnParameters": 123,
+                                    "id": 134,
+                                    "nodeType": "Return",
+                                    "src": "2380:29:0"
+                                }
+                            ]
+                        },
+                        "functionSelector": "72281b20",
+                        "id": 136,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "obtenerDenuncia",
+                        "nameLocation": "2214:15:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 119,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 118,
+                                    "mutability": "mutable",
+                                    "name": "_denunciaId",
+                                    "nameLocation": "2247:11:0",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 136,
+                                    "src": "2239:19:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    },
+                                    "typeName": {
+                                        "id": 117,
+                                        "name": "uint256",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "2239:7:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "2229:35:0"
+                        },
+                        "returnParameters": {
+                            "id": 123,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 122,
+                                    "mutability": "mutable",
+                                    "name": "",
+                                    "nameLocation": "-1:-1:-1",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 136,
+                                    "src": "2286:15:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "memory",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_struct$_Denuncia_$18_memory_ptr",
+                                        "typeString": "struct DenunciaAnonima.Denuncia"
+                                    },
+                                    "typeName": {
+                                        "id": 121,
+                                        "nodeType": "UserDefinedTypeName",
+                                        "pathNode": {
+                                            "id": 120,
+                                            "name": "Denuncia",
+                                            "nameLocations": [
+                                                "2286:8:0"
+                                            ],
+                                            "nodeType": "IdentifierPath",
+                                            "referencedDeclaration": 18,
+                                            "src": "2286:8:0"
+                                        },
+                                        "referencedDeclaration": 18,
+                                        "src": "2286:8:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_struct$_Denuncia_$18_storage_ptr",
+                                            "typeString": "struct DenunciaAnonima.Denuncia"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "2285:17:0"
+                        },
+                        "scope": 145,
+                        "src": "2205:211:0",
+                        "stateMutability": "view",
+                        "virtual": false,
+                        "visibility": "public"
+                    },
+                    {
+                        "body": {
+                            "id": 143,
+                            "nodeType": "Block",
+                            "src": "2529:36:0",
+                            "statements": [
+                                {
+                                    "expression": {
+                                        "id": 141,
+                                        "name": "_denunciaIds",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 30,
+                                        "src": "2546:12:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "functionReturnParameters": 140,
+                                    "id": 142,
+                                    "nodeType": "Return",
+                                    "src": "2539:19:0"
+                                }
+                            ]
+                        },
+                        "functionSelector": "1c1a2b4b",
+                        "id": 144,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "totalDenuncias",
+                        "nameLocation": "2482:14:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 137,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "2496:2:0"
+                        },
+                        "returnParameters": {
+                            "id": 140,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 139,
+                                    "mutability": "mutable",
+                                    "name": "",
+                                    "nameLocation": "-1:-1:-1",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 144,
+                                    "src": "2520:7:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    },
+                                    "typeName": {
+                                        "id": 138,
+                                        "name": "uint256",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "2520:7:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "2519:9:0"
+                        },
+                        "scope": 145,
+                        "src": "2473:92:0",
+                        "stateMutability": "view",
+                        "virtual": false,
+                        "visibility": "public"
+                    }
+                ],
+                "scope": 146,
+                "src": "166:2401:0",
+                "usedErrors": [
+                    159,
+                    164
+                ],
+                "usedEvents": [
+                    43,
+                    170
+                ]
+            }
+        ],
+        "src": "32:2536:0"
+    },
+    "functionHashes": {
+        "crearDenuncia(string,string,bytes,uint256[])": "b02bad47",
+        "denuncias(uint256)": "884d4610",
+        "denunciasPorDenunciante(address,uint256)": "075fd0fa",
+        "obtenerDenuncia(uint256)": "72281b20",
+        "obtenerDenunciasPorDenunciante(address)": "9db40a51",
+        "owner()": "8da5cb5b",
+        "renounceOwnership()": "715018a6",
+        "totalDenuncias()": "1c1a2b4b",
+        "transferOwnership(address)": "f2fde38b"
+    },
+    "gasEstimates": {
+        "creation": {
+            "codeDepositCost": "661400",
+            "executionCost": "26500",
+            "totalCost": "687900"
+        },
+        "external": {
+            "crearDenuncia(string,string,bytes,uint256[])": "infinite",
+            "denuncias(uint256)": "infinite",
+            "denunciasPorDenunciante(address,uint256)": "6769",
+            "obtenerDenuncia(uint256)": "infinite",
+            "obtenerDenunciasPorDenunciante(address)": "infinite",
+            "owner()": "2381",
+            "renounceOwnership()": "28086",
+            "totalDenuncias()": "2270",
+            "transferOwnership(address)": "28335"
+        }
+    }
+}
