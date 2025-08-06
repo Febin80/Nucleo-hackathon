@@ -1,7 +1,7 @@
-# Nucleo - Sistema de Denuncias Anónimas con Zero-Knowledge Proofs
+# DenunciaChain - Sistema de Denuncias Anónimas con Zero-Knowledge Proofs
 
 ## Descripción
-Nucleo es una plataforma descentralizada que permite realizar denuncias anónimas de manera segura utilizando tecnología blockchain y zero-knowledge proofs. El sistema garantiza la privacidad de los denunciantes mientras mantiene la integridad y verificabilidad de las denuncias.
+DenunciaChain es una plataforma descentralizada que permite realizar denuncias anónimas de manera segura utilizando tecnología blockchain y zero-knowledge proofs. El sistema garantiza la privacidad de los denunciantes mientras mantiene la integridad y verificabilidad de las denuncias.
 
 ## Características Principales
 - 🔒 Denuncias completamente anónimas
