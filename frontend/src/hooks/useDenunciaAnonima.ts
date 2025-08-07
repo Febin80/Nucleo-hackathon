@@ -48,6 +48,37 @@ export const useDenunciaAnonima = () => {
   const [denuncias, setDenuncias] = useState<Denuncia[]>([])
   const [nuevaDenunciaDetectada, setNuevaDenunciaDetectada] = useState(false)
 
+  // RPCs públicos para Mantle Sepolia
+  const MANTLE_SEPOLIA_RPCS = [
+    'https://mantle-sepolia.drpc.org',
+    'https://rpc.sepolia.mantle.xyz',
+    'https://mantle-sepolia.gateway.tenderly.co',
+    'https://endpoints.omniatech.io/v1/mantle/sepolia/public',
+    'https://mantle-sepolia-testnet.rpc.thirdweb.com',
+  ]
+
+  // Función para obtener provider público (sin MetaMask)
+  const getPublicProvider = async (): Promise<ethers.JsonRpcProvider> => {
+    for (const rpcUrl of MANTLE_SEPOLIA_RPCS) {
+      try {
+        console.log(`🔍 Probando RPC público: ${rpcUrl.split('/')[2]}`)
+        const provider = new ethers.JsonRpcProvider(rpcUrl)
+        
+        // Verificar que funciona
+        const network = await provider.getNetwork()
+        if (network.chainId === BigInt(5003)) {
+          console.log(`✅ RPC público funcional: ${rpcUrl.split('/')[2]}`)
+          return provider
+        }
+      } catch (error) {
+        console.warn(`❌ RPC ${rpcUrl.split('/')[2]} falló`)
+        continue
+      }
+    }
+    
+    throw new Error('No se pudo conectar a ningún RPC público de Mantle Sepolia')
+  }
+
   // Función helper para retry con backoff exponencial
   const retryWithBackoff = async <T>(
     fn: () => Promise<T>,
@@ -118,27 +149,7 @@ export const useDenunciaAnonima = () => {
     return resultados
   }
 
-  // Verificar si la red Mantle Sepolia está disponible
-  const verificarRedMantle = async (): Promise<boolean> => {
-    try {
-      const response = await fetch('https://rpc.sepolia.mantle.xyz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'eth_chainId',
-          params: [],
-          id: 1
-        })
-      })
-      const data = await response.json()
-      return data.result === '0x138b' // 5003 en hex (correcto)
-    } catch {
-      return false
-    }
-  }
+
 
   // Inicializar el servicio ZK
   const initializeZK = async () => {
@@ -362,20 +373,10 @@ export const useDenunciaAnonima = () => {
       setLoading(true)
       setError(null)
 
-      // Verificar que la red Mantle Sepolia esté disponible
-      const redActiva = await verificarRedMantle()
-      if (!redActiva) {
-        throw new Error(`
-          La red Mantle Sepolia no está disponible o no es accesible.
-          
-          Para solucionarlo:
-          1. Verifica tu conexión a internet
-          2. Asegúrate de estar conectado a Mantle Sepolia en MetaMask
-          3. Recarga la página
-        `)
-      }
-
-      const provider = await getProvider()
+      console.log('🚀 OBTENIENDO DENUNCIAS SIN METAMASK')
+      
+      // Usar provider público (no requiere MetaMask)
+      const provider = await getPublicProvider()
       const contract = new ethers.Contract(
         CONTRACT_ADDRESS,
         DenunciaAnonimaABI as ethers.InterfaceAbi,
@@ -414,8 +415,7 @@ export const useDenunciaAnonima = () => {
                   esPublica: denunciaStruct.esPublica || true // Fallback para compatibilidad
                 };
                 
-                // Obtener el bloque para el timestamp
-                const provider = await getProvider()
+                // Obtener el bloque para el timestamp usando el provider público
                 const currentBlock = await provider.getBlockNumber()
                 
                 // Intentar obtener un preview del contenido IPFS

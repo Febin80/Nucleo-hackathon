@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { useDenunciaAnonima } from '../hooks/useDenunciaAnonima'
 import { Box, Heading, Text, Spinner, VStack, Badge, HStack, Divider, Button } from '@chakra-ui/react'
+
+const CONTRACT_ADDRESS = '0x7B339806c5Bf0bc8e12758D9E65b8806361b66f5'
 import { NetworkHelper } from './NetworkHelper'
 import { NuevaDenunciaNotification } from './NuevaDenunciaNotification'
 import { IPFSContentViewer } from './IPFSContentViewer'
@@ -47,6 +49,12 @@ export const ListaDenuncias = () => {
           <Text fontSize="sm" color="gray.600">
             Registro inmutable y seguro de denuncias anónimas verificadas mediante pruebas criptográficas
           </Text>
+          
+          {/* Mensaje informativo para modo solo lectura */}
+          <Text fontSize="xs" color="green.600" bg="green.50" px={2} py={1} borderRadius="md">
+            ℹ️ Modo solo lectura activo - no se requiere MetaMask para ver denuncias
+          </Text>
+          
           <Text fontSize="xs" color="blue.600" bg="blue.50" px={2} py={1} borderRadius="md">
             📋 Contrato actualizado con función de actualización de hash IPFS: 0x7B339806...361b66f5
           </Text>
@@ -112,10 +120,17 @@ export const ListaDenuncias = () => {
             </Text>
           )}
         </Text>
+        
+        {/* Mensaje informativo para modo solo lectura */}
+        <Text fontSize="xs" color="green.600" bg="green.50" px={2} py={1} borderRadius="md">
+          ℹ️ Modo solo lectura activo - no se requiere MetaMask para ver denuncias
+        </Text>
+        
         <Text fontSize="xs" color="blue.600" bg="blue.50" px={2} py={1} borderRadius="md">
-          📋 Contrato actualizado con función de actualización de hash IPFS: 0x7B339806...361b66f5
+          Conectado al contrato: {CONTRACT_ADDRESS.slice(0, 6)}...{CONTRACT_ADDRESS.slice(-4)} en Mantle Sepolia
         </Text>
       </VStack>
+      
       <VStack spacing={4} align="stretch">
         {denuncias.map((denuncia, index) => (
           <Box

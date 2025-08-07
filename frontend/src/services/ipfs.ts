@@ -97,14 +97,68 @@ function setCachedContent(hash: string, content: string): void {
   }
 }
 
-// Lista de gateways IPFS optimizada para producción
+// Lista expandida de gateways IPFS con mejor distribución de carga (actualizada)
 const IPFS_GATEWAYS = [
   'https://dweb.link/ipfs/', // Gateway más confiable para CORS
-  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare es muy confiable
+  'https://ipfs.infura.io/ipfs/', // Infura IPFS gateway
+  'https://4everland.io/ipfs/', // Gateway alternativo confiable
+  'https://nftstorage.link/ipfs/', // NFT.Storage gateway
+  'https://w3s.link/ipfs/', // Web3.Storage gateway
+  'https://ipfs.filebase.io/ipfs/', // Filebase gateway
+  'https://crustipfs.xyz/ipfs/', // Crust Network gateway
   'https://ipfs.io/ipfs/', // Gateway oficial
   'https://gateway.ipfs.io/ipfs/', // Gateway oficial alternativo
   'https://gateway.pinata.cloud/ipfs/', // Pinata (puede tener rate limits)
 ];
+
+// Sistema de rate limiting por gateway
+const gatewayRateLimits = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minuto
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+// Circuit breaker para prevenir sobrecarga del sistema
+const circuitBreaker = {
+  failures: 0,
+  lastFailureTime: 0,
+  state: 'CLOSED' as 'CLOSED' | 'OPEN' | 'HALF_OPEN',
+  failureThreshold: 5,
+  recoveryTimeout: 30000, // 30 segundos
+  
+  canExecute(): boolean {
+    const now = Date.now();
+    
+    if (this.state === 'CLOSED') {
+      return true;
+    }
+    
+    if (this.state === 'OPEN') {
+      if (now - this.lastFailureTime > this.recoveryTimeout) {
+        this.state = 'HALF_OPEN';
+        console.log('🔄 Circuit breaker: Cambiando a HALF_OPEN');
+        return true;
+      }
+      return false;
+    }
+    
+    // HALF_OPEN state
+    return true;
+  },
+  
+  recordSuccess(): void {
+    this.failures = 0;
+    this.state = 'CLOSED';
+  },
+  
+  recordFailure(): void {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    
+    if (this.failures >= this.failureThreshold) {
+      this.state = 'OPEN';
+      console.warn(`⚠️ Circuit breaker: ABIERTO por ${this.recoveryTimeout/1000}s después de ${this.failures} fallos`);
+    }
+  }
+};
 
 // Función para obtener contenido de IPFS con múltiples estrategias
 export async function getIPFSContent(hash: string): Promise<string> {
@@ -131,25 +185,155 @@ export async function getIPFSContent(hash: string): Promise<string> {
     console.log('🔄 Intentando obtener contenido a pesar del hash inválido...');
   }
 
-  // Estrategia 3: Intentar con múltiples gateways secuencialmente
+  // Estrategia 3: Verificar circuit breaker antes de intentar gateways
+  if (!circuitBreaker.canExecute()) {
+    console.warn('⚠️ Circuit breaker ABIERTO - saltando a contenido de ejemplo');
+    return getExampleContent(hash);
+  }
+
+  // Estrategia 4: Intentar con múltiples gateways
   try {
     const content = await tryGatewaysSequentially(hash);
+    
+    // Registrar éxito en circuit breaker
+    circuitBreaker.recordSuccess();
     
     // Guardar en cache si es exitoso
     setCachedContent(hash, content);
     
     return content;
-  } catch (error) {
-    console.error('❌ Todos los gateways fallaron para hash:', hash.slice(0, 10));
-    console.error('Error:', error);
+  } catch (gatewayError) {
+    // Registrar fallo en circuit breaker
+    circuitBreaker.recordFailure();
+    console.error('❌ Todos los gateways directos fallaron para hash:', hash.slice(0, 10));
+    console.error('Error:', gatewayError);
     
-    // Solo como último recurso, devolver contenido de ejemplo
-    console.log('📄 Usando contenido de ejemplo como último recurso');
-    const exampleContent = getExampleContent(hash);
-    
-    // No cachear contenido de ejemplo
-    return exampleContent;
+    // Estrategia 5: Intentar con servicios proxy/alternativos
+    try {
+      console.log('🔄 Intentando estrategias alternativas...');
+      const content = await tryAlternativeStrategies(hash);
+      
+      // Registrar éxito parcial en circuit breaker
+      circuitBreaker.recordSuccess();
+      
+      // Guardar en cache si es exitoso
+      setCachedContent(hash, content);
+      
+      return content;
+    } catch (alternativeError) {
+      console.error('❌ Estrategias alternativas también fallaron:', alternativeError);
+      
+      // Solo como último recurso, devolver contenido de ejemplo
+      console.log('📄 Usando contenido de ejemplo como último recurso');
+      const exampleContent = getExampleContent(hash);
+      
+      // No cachear contenido de ejemplo
+      return exampleContent;
+    }
   }
+}
+
+// Función para intentar estrategias alternativas cuando los gateways directos fallan
+async function tryAlternativeStrategies(hash: string): Promise<string> {
+  const strategies = [
+    // Estrategia 1: Usar API de Pinata directamente si tenemos acceso
+    async () => {
+      try {
+        console.log('🔄 Intentando API de Pinata...');
+        // Intentar obtener desde Pinata con diferentes endpoints
+        const pinataUrls = [
+          `https://gateway.pinata.cloud/ipfs/${hash}`,
+          `https://${hash}.ipfs.dweb.link/`,
+          `https://${hash}.ipfs.cf-ipfs.com/`
+        ];
+        
+        for (const url of pinataUrls) {
+          try {
+            // Usar Promise.race para timeout más robusto
+            const timeoutPromise = new Promise<never>((_, reject) => {
+              setTimeout(() => reject(new Error('Timeout en estrategia Pinata')), 10000);
+            });
+            
+            const fetchPromise = fetch(url, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json, text/plain, */*',
+              }
+            });
+            
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+            
+            if (response.ok) {
+              const content = await response.text();
+              if (content && content.trim().length > 0) {
+                console.log(`✅ Éxito con estrategia Pinata: ${url.split('/')[2]}`);
+                return content;
+              }
+            }
+          } catch (error) {
+            continue; // Intentar siguiente URL
+          }
+        }
+        throw new Error('Todas las URLs de Pinata fallaron');
+      } catch (error) {
+        throw new Error(`Estrategia Pinata falló: ${error}`);
+      }
+    },
+    
+    // Estrategia 2: Usar subdominios IPFS (mejor para CORS)
+    async () => {
+      try {
+        console.log('🔄 Intentando subdominios IPFS...');
+        const subdomainUrls = [
+          `https://${hash}.ipfs.dweb.link/`,
+          `https://${hash}.ipfs.cf-ipfs.com/`,
+          `https://${hash}.ipfs.4everland.io/`
+        ];
+        
+        for (const url of subdomainUrls) {
+          try {
+            // Usar Promise.race para timeout más robusto
+            const timeoutPromise = new Promise<never>((_, reject) => {
+              setTimeout(() => reject(new Error('Timeout en subdominio IPFS')), 15000);
+            });
+            
+            const fetchPromise = fetch(url, {
+              method: 'GET'
+            });
+            
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+            
+            if (response.ok) {
+              const content = await response.text();
+              if (content && content.trim().length > 0) {
+                console.log(`✅ Éxito con subdominio: ${url.split('/')[2]}`);
+                return content;
+              }
+            }
+          } catch (error) {
+            continue; // Intentar siguiente URL
+          }
+        }
+        throw new Error('Todos los subdominios fallaron');
+      } catch (error) {
+        throw new Error(`Estrategia subdominios falló: ${error}`);
+      }
+    }
+  ];
+  
+  // Intentar cada estrategia
+  for (let i = 0; i < strategies.length; i++) {
+    try {
+      console.log(`🎯 Ejecutando estrategia alternativa ${i + 1}/${strategies.length}...`);
+      const content = await strategies[i]();
+      return content;
+    } catch (error) {
+      console.warn(`❌ Estrategia alternativa ${i + 1} falló:`, error);
+      continue;
+    }
+  }
+  
+  throw new Error('Todas las estrategias alternativas fallaron');
 }
 
 // Función para validar si un hash IPFS parece válido
@@ -170,42 +354,113 @@ function isValidIPFSHash(hash: string): boolean {
   return true;
 }
 
-// Función para obtener contenido de un gateway específico con timeout y manejo de CORS
+// Función para verificar si un gateway está en rate limit
+function isGatewayRateLimited(gateway: string): boolean {
+  const rateLimitInfo = gatewayRateLimits.get(gateway);
+  if (!rateLimitInfo) return false;
+  
+  const now = Date.now();
+  if (now > rateLimitInfo.resetTime) {
+    // Reset del contador si ha pasado la ventana
+    gatewayRateLimits.delete(gateway);
+    return false;
+  }
+  
+  return rateLimitInfo.count >= MAX_REQUESTS_PER_WINDOW;
+}
+
+// Función para registrar uso de gateway
+function recordGatewayUsage(gateway: string): void {
+  const now = Date.now();
+  const rateLimitInfo = gatewayRateLimits.get(gateway);
+  
+  if (!rateLimitInfo || now > rateLimitInfo.resetTime) {
+    gatewayRateLimits.set(gateway, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW
+    });
+  } else {
+    rateLimitInfo.count++;
+  }
+}
+
+// Función para obtener contenido de un gateway específico con timeout y manejo de CORS mejorado
 async function fetchFromGateway(url: string, timeout: number): Promise<string> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const gateway = url.split('/ipfs/')[0];
+  
+  // Verificar rate limit local antes de hacer la solicitud
+  if (isGatewayRateLimited(gateway)) {
+    throw new Error('Gateway en rate limit local - saltando');
+  }
+  
+  // Registrar uso del gateway
+  recordGatewayUsage(gateway);
+  
+  // Crear timeout promise
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`Timeout después de ${timeout}ms`));
+    }, timeout);
+  });
 
   try {
-    // Intentar primero con CORS habilitado
-    let response;
-    try {
-      response = await fetch(url, {
-        method: 'GET',
-        mode: 'cors',
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json, text/plain, */*',
+    
+    // Función para hacer fetch con diferentes estrategias CORS
+    const fetchWithStrategies = async (): Promise<Response> => {
+      // Estrategia 1: CORS habilitado con headers optimizados
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        return response;
+      } catch (corsError) {
+        console.warn(`⚠️ CORS falló para ${gateway}, intentando estrategias alternativas...`);
+        
+        // Estrategia 2: Headers más simples
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              'Accept': '*/*',
+            }
+          });
+          return response;
+        } catch (secondCorsError) {
+          // Estrategia 3: Request simple para gateways específicos
+          if (gateway.includes('dweb.link') || gateway.includes('4everland') || gateway.includes('cloudflare')) {
+            const response = await fetch(url, {
+              method: 'GET'
+            });
+            return response;
+          } else {
+            throw new Error('CORS bloqueado en todas las estrategias');
+          }
         }
-      });
-    } catch (corsError) {
-      console.warn(`⚠️ CORS falló para ${url}, intentando sin CORS...`);
-      // Si CORS falla, intentar sin CORS (para algunos gateways)
-      response = await fetch(url, {
-        method: 'GET',
-        mode: 'no-cors',
-        signal: controller.signal
-      });
-      
-      // Con no-cors, no podemos leer el contenido, así que asumimos que falló
-      throw new Error('CORS bloqueado y no-cors no permite leer contenido');
-    }
+      }
+    };
 
-    clearTimeout(timeoutId);
+    // Usar Promise.race para manejar timeout de manera más robusta
+    const response = await Promise.race([
+      fetchWithStrategies(),
+      timeoutPromise
+    ]);
 
     // Manejar diferentes códigos de estado
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error(`Rate limit excedido (429) - Demasiadas solicitudes`);
+        // Marcar gateway como rate limited por más tiempo
+        gatewayRateLimits.set(gateway, {
+          count: MAX_REQUESTS_PER_WINDOW,
+          resetTime: Date.now() + (RATE_LIMIT_WINDOW * 3) // 3 minutos de penalización
+        });
+        throw new Error(`Rate limit excedido (429) - Gateway penalizado por 3 minutos`);
       }
       if (response.status === 422) {
         throw new Error(`CID inválido (422): ${response.statusText}`);
@@ -232,62 +487,195 @@ async function fetchFromGateway(url: string, timeout: number): Promise<string> {
       throw new Error('Contenido vacío recibido');
     }
 
-    console.log(`✅ Contenido obtenido exitosamente de: ${url.split('/ipfs/')[0]}`);
+    console.log(`✅ Contenido obtenido exitosamente de: ${gateway}`);
     return content;
   } catch (error) {
-    clearTimeout(timeoutId);
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.warn(`❌ Error en gateway ${url.split('/ipfs/')[0]}: ${errorMsg}`);
-    throw error;
+    // Mejorar el manejo de errores
+    let errorMsg = error instanceof Error ? error.message : String(error);
+    
+    if (error instanceof Error) {
+      if (errorMsg.includes('Timeout después de')) {
+        // Ya es un mensaje de timeout claro
+      } else if (error.name === 'AbortError' || errorMsg.includes('aborted')) {
+        errorMsg = `Timeout después de ${timeout}ms`;
+      } else if (errorMsg.includes('Failed to fetch')) {
+        errorMsg = 'Error de conexión o CORS bloqueado';
+      } else if (errorMsg.includes('NetworkError')) {
+        errorMsg = 'Error de red';
+      }
+    }
+    
+    console.warn(`❌ Error en gateway ${gateway}: ${errorMsg}`);
+    throw new Error(errorMsg);
   }
 }
 
-// Función para intentar gateways secuencialmente con estrategia inteligente
-async function tryGatewaysSequentially(hash: string): Promise<string> {
-  console.log(`🔄 Intentando gateways secuencialmente para: ${hash.slice(0, 10)}...`);
+// Función para obtener gateways ordenados por prioridad y disponibilidad
+function getOrderedGateways(): string[] {
+  const now = Date.now();
   
+  // Filtrar gateways que no están en rate limit y ordenar por prioridad
+  const availableGateways = IPFS_GATEWAYS.filter(gateway => {
+    const rateLimitInfo = gatewayRateLimits.get(gateway);
+    if (!rateLimitInfo) return true;
+    
+    // Si ha pasado el tiempo de reset, el gateway está disponible
+    if (now > rateLimitInfo.resetTime) {
+      gatewayRateLimits.delete(gateway);
+      return true;
+    }
+    
+    return rateLimitInfo.count < MAX_REQUESTS_PER_WINDOW;
+  });
+  
+  // Si no hay gateways disponibles, usar todos (reset forzado)
+  if (availableGateways.length === 0) {
+    console.warn('⚠️ Todos los gateways en rate limit - reset forzado');
+    gatewayRateLimits.clear();
+    return [...IPFS_GATEWAYS];
+  }
+  
+  // Agregar gateways en rate limit al final como último recurso
+  const rateLimitedGateways = IPFS_GATEWAYS.filter(gateway => 
+    !availableGateways.includes(gateway)
+  );
+  
+  return [...availableGateways, ...rateLimitedGateways];
+}
+
+// Función para intentar gateways con estrategia inteligente mejorada
+async function tryGatewaysSequentially(hash: string): Promise<string> {
+  console.log(`🔄 Intentando gateways para: ${hash.slice(0, 10)}...`);
+  
+  const orderedGateways = getOrderedGateways();
   const errors: string[] = [];
   let rateLimitedGateways = 0;
+  let corsBlockedGateways = 0;
   
-  for (let i = 0; i < IPFS_GATEWAYS.length; i++) {
-    const gateway = IPFS_GATEWAYS[i];
+  console.log(`📊 Gateways disponibles: ${orderedGateways.length} (${IPFS_GATEWAYS.length - orderedGateways.length} en rate limit)`);
+  
+  // Estrategia 1: Intentar gateways en paralelo (primeros 3)
+  if (orderedGateways.length >= 3) {
+    console.log('🚀 Intentando primeros 3 gateways en paralelo...');
+    
+    const parallelPromises = orderedGateways.slice(0, 3).map(async (gateway, index) => {
+      try {
+        const url = gateway + hash;
+        const timeout = 8000; // Timeout más corto para requests paralelos
+        const content = await fetchFromGateway(url, timeout);
+        return { success: true, content, gateway, index };
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMsg, gateway, index };
+      }
+    });
+    
+    try {
+      const results = await Promise.allSettled(parallelPromises);
+      
+      // Buscar el primer resultado exitoso
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value.success && result.value.content) {
+          console.log(`✅ Éxito paralelo con: ${result.value.gateway.split('/ipfs/')[0]}`);
+          return result.value.content;
+        }
+      }
+      
+      // Si ninguno tuvo éxito, registrar errores
+      results.forEach(result => {
+        if (result.status === 'fulfilled' && !result.value.success) {
+          const errorMsg = result.value.error || 'Error desconocido';
+          if (errorMsg.includes('429') || errorMsg.includes('Rate limit')) {
+            rateLimitedGateways++;
+          }
+          if (errorMsg.includes('CORS')) {
+            corsBlockedGateways++;
+          }
+          errors.push(`${result.value.gateway.split('/ipfs/')[0]}: ${errorMsg}`);
+        }
+      });
+      
+    } catch (parallelError) {
+      console.warn('⚠️ Error en estrategia paralela, continuando secuencialmente...');
+    }
+  }
+  
+  // Estrategia 2: Intentar gateways restantes secuencialmente
+  const remainingGateways = orderedGateways.slice(3);
+  
+  for (let i = 0; i < remainingGateways.length; i++) {
+    const gateway = remainingGateways[i];
     try {
       const url = gateway + hash;
-      console.log(`🌐 [${i + 1}/${IPFS_GATEWAYS.length}] Intentando: ${gateway.split('/ipfs/')[0]}`);
+      console.log(`🌐 [${i + 4}/${orderedGateways.length}] Intentando: ${gateway.split('/ipfs/')[0]}`);
       
-      // Timeout más corto para los primeros intentos, más largo para los últimos
-      const timeout = i < 2 ? 10000 : 20000;
+      // Timeout progresivo: más tiempo para gateways posteriores
+      const timeout = Math.min(15000 + (i * 2000), 30000);
       const content = await fetchFromGateway(url, timeout);
       
-      console.log(`✅ Éxito con gateway: ${gateway.split('/ipfs/')[0]}`);
+      console.log(`✅ Éxito secuencial con: ${gateway.split('/ipfs/')[0]}`);
       return content;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       
-      // Contar rate limits para estadísticas
+      // Contar diferentes tipos de errores
       if (errorMsg.includes('429') || errorMsg.includes('Rate limit')) {
         rateLimitedGateways++;
       }
+      if (errorMsg.includes('CORS')) {
+        corsBlockedGateways++;
+      }
       
-      console.warn(`❌ Gateway ${i + 1} falló: ${errorMsg}`);
+      console.warn(`❌ Gateway ${i + 4} falló: ${errorMsg}`);
       errors.push(`${gateway.split('/ipfs/')[0]}: ${errorMsg}`);
       
-      // Si es rate limit, esperar un poco antes del siguiente intento
-      if (errorMsg.includes('429') && i < IPFS_GATEWAYS.length - 1) {
-        console.log('⏳ Rate limit detectado, esperando 2 segundos...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+      // Espera adaptativa basada en el tipo de error
+      if (errorMsg.includes('429') && i < remainingGateways.length - 1) {
+        const waitTime = Math.min(1000 + (rateLimitedGateways * 500), 5000);
+        console.log(`⏳ Rate limit detectado, esperando ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else if (errorMsg.includes('CORS') && i < remainingGateways.length - 1) {
+        // Espera más corta para errores CORS
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
       
       continue;
     }
   }
 
-  // Estadísticas de fallo
+  // Análisis detallado de errores para determinar la causa probable
+  const timeoutErrors = errors.filter(e => e.includes('Timeout después de')).length;
+  const notFoundErrors = errors.filter(e => e.includes('404')).length;
+  const serverErrors = errors.filter(e => e.includes('50')).length; // 500, 502, 504, etc.
+  const corsErrors = corsBlockedGateways;
+  const rateLimitErrors = rateLimitedGateways;
+  
+  // Estadísticas detalladas de fallo
   console.error(`❌ Todos los gateways fallaron para hash: ${hash.slice(0, 10)}...`);
-  console.error(`📊 Estadísticas: ${rateLimitedGateways}/${IPFS_GATEWAYS.length} gateways con rate limit`);
+  console.error(`📊 Análisis detallado de errores:`);
+  console.error(`   - Rate limits (429): ${rateLimitErrors}/${orderedGateways.length}`);
+  console.error(`   - CORS bloqueados: ${corsErrors}/${orderedGateways.length}`);
+  console.error(`   - Timeouts: ${timeoutErrors}/${orderedGateways.length}`);
+  console.error(`   - Not Found (404): ${notFoundErrors}/${orderedGateways.length}`);
+  console.error(`   - Server errors (5xx): ${serverErrors}/${orderedGateways.length}`);
+  console.error(`   - Otros errores: ${errors.length - rateLimitErrors - corsErrors - timeoutErrors - notFoundErrors - serverErrors}`);
+  
+  // Determinar causa probable
+  let probableCause = "errores de red";
+  if (notFoundErrors >= orderedGateways.length * 0.5) {
+    probableCause = "contenido no existe en IPFS";
+  } else if (rateLimitErrors >= orderedGateways.length * 0.7) {
+    probableCause = "rate limiting masivo";
+  } else if (timeoutErrors >= orderedGateways.length * 0.7) {
+    probableCause = "problemas de conectividad";
+  } else if (serverErrors >= orderedGateways.length * 0.5) {
+    probableCause = "problemas en gateways IPFS";
+  }
+  
+  console.error(`🔍 Causa probable: ${probableCause}`);
   
   // Si todos fallan, lanzar error con detalles
-  const errorSummary = `${errors.length} gateways fallaron. Rate limits: ${rateLimitedGateways}`;
+  const errorSummary = `${errors.length} gateways fallaron. Causa probable: ${probableCause}`;
   throw new Error(`Todos los gateways IPFS fallaron para hash ${hash.slice(0, 10)}... (${errorSummary})`);
 }
 
@@ -309,14 +697,27 @@ function getExampleContent(hash: string): string {
     }, null, 2);
   }
   
-  // Para otros hashes, contenido de error estándar
+  // Para hashes que no existen o están inaccesibles
   return JSON.stringify({
-    error: "No se pudo obtener el contenido original de IPFS",
-    hash: hash,
-    message: "Este es contenido de ejemplo generado localmente",
-    suggestion: "Los gateways IPFS pueden estar temporalmente no disponibles",
+    error: "Contenido IPFS no disponible",
+    hash: hash.slice(0, 15) + "...",
+    titulo: "Denuncia no disponible",
+    descripcion: "El contenido de esta denuncia no está disponible actualmente. Esto puede deberse a que el contenido fue eliminado de la red IPFS o nunca se subió correctamente.",
+    tipo: "contenido_no_disponible",
+    estado: "inaccesible",
+    posibles_causas: [
+      "El contenido fue eliminado de la red IPFS",
+      "El hash es inválido o corrupto",
+      "Problemas temporales de conectividad",
+      "El contenido nunca se subió correctamente"
+    ],
+    sugerencias: [
+      "Contactar al denunciante para re-subir el contenido",
+      "Verificar si hay una copia de respaldo",
+      "Intentar nuevamente más tarde"
+    ],
     timestamp: new Date().toISOString(),
-    note: "En un entorno de producción, el contenido estaría disponible en IPFS"
+    nota: "Este es contenido de fallback generado automáticamente"
   }, null, 2);
 }
 
