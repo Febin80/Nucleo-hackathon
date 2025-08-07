@@ -48,6 +48,76 @@ export const useDenunciaAnonima = () => {
   const [denuncias, setDenuncias] = useState<Denuncia[]>([])
   const [nuevaDenunciaDetectada, setNuevaDenunciaDetectada] = useState(false)
 
+  // Función helper para retry con backoff exponencial
+  const retryWithBackoff = async <T>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn()
+      } catch (error) {
+        const isRateLimit = error instanceof Error && 
+          (error.message.includes('rate limit') || error.message.includes('-32005'))
+        
+        if (isRateLimit && attempt < maxRetries) {
+          const delay = baseDelay * Math.pow(2, attempt - 1) // Backoff exponencial
+          console.log(`🔄 Rate limit detectado, reintentando en ${delay}ms (intento ${attempt}/${maxRetries})`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+          continue
+        }
+        
+        throw error
+      }
+    }
+    throw new Error('Max retries reached')
+  }
+
+  // Función helper para procesar promesas en lotes y evitar rate limiting
+  const procesarDenunciasEnLotes = async (
+    promesas: Promise<Denuncia | null>[], 
+    tamañoLote: number = 3, 
+    delayMs: number = 1000
+  ): Promise<Denuncia[]> => {
+    const resultados: Denuncia[] = []
+    
+    console.log(`📦 Procesando ${promesas.length} denuncias en lotes de ${tamañoLote} con delay de ${delayMs}ms`)
+    
+    for (let i = 0; i < promesas.length; i += tamañoLote) {
+      const lote = promesas.slice(i, i + tamañoLote)
+      const loteNumero = Math.floor(i / tamañoLote) + 1
+      const totalLotes = Math.ceil(promesas.length / tamañoLote)
+      
+      console.log(`🔄 Procesando lote ${loteNumero}/${totalLotes} (${lote.length} denuncias)`)
+      
+      try {
+        // Usar retry con backoff para cada lote
+        const resultadosLote = await retryWithBackoff(async () => {
+          return await Promise.all(lote)
+        }, 3, 1000)
+        
+        const denunciasValidas = resultadosLote.filter((d): d is Denuncia => d !== null)
+        resultados.push(...denunciasValidas)
+        
+        console.log(`✅ Lote ${loteNumero} completado: ${denunciasValidas.length}/${lote.length} denuncias válidas`)
+        
+        // Delay entre lotes para evitar rate limiting (excepto en el último lote)
+        if (i + tamañoLote < promesas.length) {
+          console.log(`⏳ Esperando ${delayMs}ms antes del siguiente lote...`)
+          await new Promise(resolve => setTimeout(resolve, delayMs))
+        }
+      } catch (error) {
+        console.error(`❌ Error en lote ${loteNumero} después de reintentos:`, error)
+        // Continuar con el siguiente lote en caso de error persistente
+        continue
+      }
+    }
+    
+    console.log(`🎉 Procesamiento completado: ${resultados.length} denuncias válidas en total`)
+    return resultados
+  }
+
   // Verificar si la red Mantle Sepolia está disponible
   const verificarRedMantle = async (): Promise<boolean> => {
     try {
@@ -410,10 +480,10 @@ export const useDenunciaAnonima = () => {
           )
         }
 
-        const denunciasResults = await Promise.all(denunciasPromises)
-        const denunciasValidas = denunciasResults.filter((d): d is Denuncia => d !== null)
+        // Procesar denuncias en lotes para evitar rate limiting
+        const denunciasValidas = await procesarDenunciasEnLotes(denunciasPromises, 3, 1000)
         
-        console.log(`Se obtuvieron ${denunciasValidas.length} denuncias válidas`)
+        console.log(`✅ Se obtuvieron ${denunciasValidas.length} denuncias válidas`)
         
         // Ordenar las denuncias por timestamp (más recientes primero)
         const denunciasOrdenadas = denunciasValidas.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
@@ -540,7 +610,7 @@ export const useDenunciaAnonima = () => {
         }
       })
 
-      const nuevasDenuncias = (await Promise.all(denunciasPromises)).filter((d): d is Denuncia => d !== null)
+      const nuevasDenuncias = await procesarDenunciasEnLotes(denunciasPromises, 2, 1500)
       return nuevasDenuncias.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     } catch (error) {
       console.error('Error al obtener eventos:', error)
