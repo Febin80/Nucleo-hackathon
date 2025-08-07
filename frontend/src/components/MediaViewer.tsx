@@ -127,11 +127,11 @@ const IPFSImage = ({ hash, alt, ...props }: { hash: string; alt: string; [key: s
 // Función auxiliar para obtener URLs de gateways (necesaria para IPFSImage)
 function getGatewayUrls(hash: string) {
   return [
-    `https://gateway.pinata.cloud/ipfs/${hash}`, // Gateway principal que funciona
-    `https://dweb.link/ipfs/${hash}`, // Gateway alternativo
-    `https://ipfs.io/ipfs/${hash}`,
-    `https://gateway.ipfs.io/ipfs/${hash}`,
-    `https://cloudflare-ipfs.com/ipfs/${hash}` // Cloudflare correcto
+    `https://dweb.link/ipfs/${hash}`, // Gateway más confiable para CORS
+    `https://cloudflare-ipfs.com/ipfs/${hash}`, // Cloudflare es muy confiable
+    `https://ipfs.io/ipfs/${hash}`, // Gateway oficial
+    `https://gateway.ipfs.io/ipfs/${hash}`, // Gateway oficial alternativo
+    `https://gateway.pinata.cloud/ipfs/${hash}`, // Pinata (puede tener rate limits)
   ];
 }
 
@@ -182,9 +182,14 @@ export const MediaViewer = ({
 
           <Alert status="info" size="sm">
             <AlertIcon />
-            <Text fontSize={{ base: "2xs", md: "xs" }}>
-              Haz clic en cualquier elemento para verlo en tamaño completo
-            </Text>
+            <VStack align="start" spacing={1}>
+              <Text fontSize={{ base: "2xs", md: "xs" }}>
+                Haz clic en cualquier elemento para verlo en tamaño completo
+              </Text>
+              <Text fontSize="2xs" color="blue.600">
+                💡 Si las imágenes no cargan, los gateways IPFS pueden estar ocupados
+              </Text>
+            </VStack>
           </Alert>
 
           <Grid 
