@@ -215,7 +215,7 @@ export const DenunciaForm = () => {
         console.log('📄 Usando hash simulado:', ipfsHashReal);
       }
 
-      // Registrar en blockchain con el hash real
+      // Registrar en blockchain con el hash real (sin usar hashes temporales)
       console.log('📝 Registrando denuncia en blockchain con hash real:', ipfsHashReal);
       
       const txHash = await crearDenuncia(tipoAcoso, ipfsHashReal, esPublica)

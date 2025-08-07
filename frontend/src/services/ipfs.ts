@@ -110,6 +110,14 @@ const IPFS_GATEWAYS = [
 export async function getIPFSContent(hash: string): Promise<string> {
   console.log(`🔍 Obteniendo contenido IPFS para hash: ${hash.slice(0, 10)}...`);
   
+  // Estrategia 0: Detectar hashes temporales y devolver contenido de ejemplo inmediatamente
+  if (hash.startsWith('QmTemporal')) {
+    console.log(`⚠️ Hash temporal detectado: ${hash.slice(0, 15)}... - Devolviendo contenido de ejemplo`);
+    const exampleContent = getExampleContent(hash);
+    // No cachear contenido temporal
+    return exampleContent;
+  }
+  
   // Estrategia 1: Verificar cache primero
   const cachedContent = getCachedContent(hash);
   if (cachedContent) {
@@ -287,6 +295,21 @@ async function tryGatewaysSequentially(hash: string): Promise<string> {
 
 // Función para generar contenido de ejemplo cuando todo falla
 function getExampleContent(hash: string): string {
+  // Si es un hash temporal, generar contenido específico
+  if (hash.startsWith('QmTemporal')) {
+    return JSON.stringify({
+      tipo: "contenido_temporal",
+      titulo: "Denuncia en proceso",
+      descripcion: "Esta denuncia está siendo procesada. El contenido real se actualizará pronto.",
+      estado: "temporal",
+      hash_temporal: hash,
+      mensaje: "El contenido definitivo se subirá a IPFS una vez completado el proceso",
+      timestamp: new Date().toISOString(),
+      nota: "Este es contenido temporal mientras se procesa la denuncia real"
+    }, null, 2);
+  }
+  
+  // Para otros hashes, contenido de error estándar
   return JSON.stringify({
     error: "No se pudo obtener el contenido original de IPFS",
     hash: hash,

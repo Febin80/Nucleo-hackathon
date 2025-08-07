@@ -763,9 +763,10 @@ export const useDenunciaAnonima = () => {
         throw new Error(`Solo el denunciante puede actualizar el hash. Denunciante: ${denunciaActual.denunciante}, Usuario actual: ${signerAddress}`);
       }
 
+      // Verificar que el hash actual sea temporal (solo para hashes que realmente lo sean)
       if (!denunciaActual.ipfsHash.startsWith('QmTemporal')) {
-        console.warn('⚠️ El hash actual no es temporal:', denunciaActual.ipfsHash);
-        // Continuar de todos modos, pero advertir
+        console.warn('⚠️ El hash actual no es temporal, no se puede actualizar:', denunciaActual.ipfsHash);
+        throw new Error('Solo se pueden actualizar hashes temporales. Este hash ya es real.');
       }
 
       console.log('📤 Enviando transacción de actualización...');
