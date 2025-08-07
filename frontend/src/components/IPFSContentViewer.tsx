@@ -560,7 +560,7 @@ export const IPFSContentViewer = ({
                               mediaHashes={jsonContent.evidencia.archivos}
                               mediaTypes={jsonContent.evidencia.tipos || []}
                               title="Evidencia de la Denuncia"
-                              maxWidth="100%"
+
                             />
                           </Box>
                         );
