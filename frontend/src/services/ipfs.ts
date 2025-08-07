@@ -93,12 +93,22 @@ export async function getIPFSContent(hash: string): Promise<string> {
 
   // Estrategia 2: Validar que el hash parece válido
   if (!isValidIPFSHash(hash)) {
-    console.warn(`⚠️ Hash IPFS inválido detectado: ${hash}, usando contenido de ejemplo`);
-    return getExampleContent(hash);
+    console.warn(`⚠️ Hash IPFS inválido detectado: ${hash}`);
+    // En lugar de devolver contenido de ejemplo, intentar de todos modos
+    console.log('🔄 Intentando obtener contenido a pesar del hash inválido...');
   }
 
   // Estrategia 3: Intentar con múltiples gateways secuencialmente
-  return await tryGatewaysSequentially(hash);
+  try {
+    return await tryGatewaysSequentially(hash);
+  } catch (error) {
+    console.error('❌ Todos los gateways fallaron para hash:', hash);
+    console.error('Error:', error);
+    
+    // Solo como último recurso, devolver contenido de ejemplo
+    console.log('📄 Usando contenido de ejemplo como último recurso');
+    return getExampleContent(hash);
+  }
 }
 
 // Función para validar si un hash IPFS parece válido
@@ -165,21 +175,27 @@ async function fetchFromGateway(url: string, timeout: number): Promise<string> {
 async function tryGatewaysSequentially(hash: string): Promise<string> {
   console.log(`🔄 Intentando gateways secuencialmente para: ${hash}`);
   
+  const errors: string[] = [];
+  
   for (const gateway of IPFS_GATEWAYS) {
     try {
       const url = gateway + hash;
       console.log(`🌐 Intentando: ${url}`);
       
-      const content = await fetchFromGateway(url, 10000); // 10 segundos timeout
+      const content = await fetchFromGateway(url, 15000); // 15 segundos timeout
+      console.log(`✅ Contenido obtenido exitosamente de: ${gateway}`);
       return content;
     } catch (error) {
-      console.warn(`❌ Gateway falló: ${gateway}`, error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn(`❌ Gateway falló: ${gateway} - ${errorMsg}`);
+      errors.push(`${gateway}: ${errorMsg}`);
       continue;
     }
   }
 
-  // Si todos fallan, devolver contenido de ejemplo
-  return getExampleContent(hash);
+  // Si todos fallan, lanzar error con detalles
+  const errorDetails = errors.join('; ');
+  throw new Error(`Todos los gateways IPFS fallaron para hash ${hash}. Errores: ${errorDetails}`);
 }
 
 
