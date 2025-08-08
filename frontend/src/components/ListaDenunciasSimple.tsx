@@ -1,7 +1,8 @@
 
 import { useDenunciaAnonimaSimple } from '../hooks/useDenunciaAnonimaSimple'
-import { Box, Heading, Text, Spinner, VStack, Button, Alert, AlertIcon, Divider } from '@chakra-ui/react'
+import { Box, Heading, Text, Spinner, VStack, Button, Alert, AlertIcon, Divider, HStack } from '@chakra-ui/react'
 import { DiagnosticoRed } from './DiagnosticoRed'
+import { IPFSContentViewer } from './IPFSContentViewer'
 
 export const ListaDenunciasSimple = () => {
   const { denuncias, loading, error, actualizarDenuncias } = useDenunciaAnonimaSimple()
@@ -140,6 +141,18 @@ export const ListaDenunciasSimple = () => {
                 <Text color={denuncia.esPublica ? "green.600" : "orange.600"}>
                   {denuncia.esPublica ? "✅ Pública" : "🔒 Privada"}
                 </Text>
+              </Box>
+
+              {/* Botones para ver contenido IPFS */}
+              <Box>
+                <Text fontSize="sm" color="gray.500" mb={2}>Acciones</Text>
+                <HStack spacing={3}>
+                  <IPFSContentViewer 
+                    hash={denuncia.ipfsHash}
+                    buttonText="Ver descripción completa"
+                    buttonSize="sm"
+                  />
+                </HStack>
               </Box>
             </VStack>
           </Box>
