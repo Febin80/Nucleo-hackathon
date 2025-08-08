@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { useHistorial } from '../contexts/HistorialContext'
 
 // Dirección del contrato
 const CONTRACT_ADDRESS = '0x7B339806c5Bf0bc8e12758D9E65b8806361b66f5';
@@ -36,7 +35,6 @@ export const useDenunciaAnonimaSimple = () => {
   const [denuncias, setDenuncias] = useState<DenunciaSimple[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { shouldRefresh, clearRefresh, lastUpdate } = useHistorial()
 
   // Función ultra-simple para obtener provider
   const getProvider = async () => {
@@ -158,21 +156,11 @@ export const useDenunciaAnonimaSimple = () => {
     await obtenerDenuncias()
   }
 
-  // useEffect que escucha cambios del contexto
+  // useEffect ultra-simple
   useEffect(() => {
     console.log('🎯 Hook simple montado - cargando denuncias...')
     obtenerDenuncias()
-  }, []) // Carga inicial
-
-  // useEffect que escucha el contexto para refrescar
-  useEffect(() => {
-    if (shouldRefresh) {
-      console.log('🔄 Contexto solicita refresh - actualizando denuncias...')
-      obtenerDenuncias().then(() => {
-        clearRefresh()
-      })
-    }
-  }, [shouldRefresh, lastUpdate, clearRefresh]) // Escucha cambios del contexto
+  }, []) // Sin dependencias
 
   return {
     denuncias,
