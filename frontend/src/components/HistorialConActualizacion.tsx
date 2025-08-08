@@ -17,15 +17,49 @@ export const HistorialConActualizacion = () => {
     autoRefresh
   })
 
-  // Auto-refresh cada 10 segundos si está habilitado
+  // Detectar cuando se crea una nueva denuncia y activar auto-refresh automáticamente
+  useEffect(() => {
+    const checkForNewDenuncia = () => {
+      const shouldActivate = localStorage.getItem('activateAutoRefresh')
+      const newDenunciaTime = localStorage.getItem('newDenunciaCreated')
+      
+      if (shouldActivate === 'true' && newDenunciaTime) {
+        const createdTime = parseInt(newDenunciaTime)
+        const now = Date.now()
+        
+        // Si la denuncia se creó hace menos de 2 minutos, activar auto-refresh
+        if (now - createdTime < 120000) { // 2 minutos
+          console.log('🚀 Nueva denuncia detectada - activando auto-refresh automáticamente')
+          setAutoRefresh(true)
+          
+          // Limpiar las señales
+          localStorage.removeItem('activateAutoRefresh')
+          localStorage.removeItem('newDenunciaCreated')
+          
+          // Hacer una actualización inmediata
+          handleManualRefresh()
+        }
+      }
+    }
+
+    // Verificar al montar el componente
+    checkForNewDenuncia()
+
+    // Verificar cada 2 segundos por si el usuario cambia de pestaña
+    const interval = setInterval(checkForNewDenuncia, 2000)
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  // Auto-refresh cada 3 segundos si está habilitado (optimizado para velocidad)
   useEffect(() => {
     if (!autoRefresh) return
 
     const interval = setInterval(async () => {
-      console.log('🔄 Auto-refresh activado - actualizando denuncias...')
+      console.log('🔄 Auto-refresh rápido activado - actualizando denuncias...')
       await actualizarDenuncias()
       setLastRefresh(new Date())
-    }, 10000) // 10 segundos
+    }, 3000) // 3 segundos para respuesta más rápida
 
     return () => clearInterval(interval)
   }, [autoRefresh, actualizarDenuncias])
@@ -171,7 +205,7 @@ export const HistorialConActualizacion = () => {
             
             {autoRefresh && (
               <Badge colorScheme="green" fontSize="xs" variant="solid">
-                🔄 Auto-refresh activo (cada 10s)
+                🔄 Auto-refresh rápido (cada 3s)
               </Badge>
             )}
           </VStack>
@@ -261,7 +295,7 @@ export const HistorialConActualizacion = () => {
         
         {autoRefresh && (
           <Text fontSize="xs" color="green.600" mt={2}>
-            🔄 Auto-refresh activado: El historial se actualiza automáticamente cada 10 segundos.
+            🔄 Auto-refresh rápido activado: El historial se actualiza automáticamente cada 3 segundos.
           </Text>
         )}
       </Box>

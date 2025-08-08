@@ -244,8 +244,8 @@ export const DenunciaForm = () => {
         isClosable: true,
       });
 
-      // Simular subida a IPFS (ya está subido, pero mostrar al usuario)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simular subida a IPFS (reducido para mayor velocidad)
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setIpfsHash(ipfsHashReal);
 
@@ -276,12 +276,16 @@ export const DenunciaForm = () => {
       setEncryptionPassword(null)
       setIpfsHash(null)
       
-      // Mostrar toast informativo con instrucciones claras
+      // Señal para activar auto-refresh en el historial
+      localStorage.setItem('activateAutoRefresh', 'true')
+      localStorage.setItem('newDenunciaCreated', Date.now().toString())
+      
+      // Mostrar toast informativo con instrucciones claras y rápidas
       toast({
-        title: '📋 Para ver tu denuncia:',
-        description: '1. Ve a la pestaña "Historial" 2. Haz clic en "🔄 Actualizar" o activa "Auto-refresh"',
-        status: 'info',
-        duration: 10000,
+        title: '🎉 ¡Denuncia creada! Auto-refresh activado',
+        description: 'Ve a "Historial" - el auto-refresh se activará automáticamente para mostrar tu denuncia',
+        status: 'success',
+        duration: 8000,
         isClosable: true,
       })
 

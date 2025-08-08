@@ -125,9 +125,9 @@ export const useDenunciaAnonimaSimple = () => {
           denunciasObtenidas.push(denuncia)
           console.log(`✅ Denuncia id=${id} obtenida: ${denuncia.tipoAcoso}`)
 
-          // Delay simple para evitar rate limiting
+          // Delay reducido para respuesta más rápida
           if (idx < maxToGet - 1) {
-            await new Promise(resolve => setTimeout(resolve, 800))
+            await new Promise(resolve => setTimeout(resolve, 300))
           }
         } catch (error) {
           console.error(`❌ Error al obtener denuncia id=${id}:`, error instanceof Error ? error.message : 'Error desconocido')
