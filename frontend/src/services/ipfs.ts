@@ -97,18 +97,15 @@ function setCachedContent(hash: string, content: string): void {
   }
 }
 
-// Lista expandida de gateways IPFS con mejor distribución de carga (actualizada)
+// Lista de gateways IPFS optimizada para CORS en producción
 const IPFS_GATEWAYS = [
-  'https://dweb.link/ipfs/', // Gateway más confiable para CORS
-  'https://ipfs.infura.io/ipfs/', // Infura IPFS gateway
-  'https://4everland.io/ipfs/', // Gateway alternativo confiable
-  'https://nftstorage.link/ipfs/', // NFT.Storage gateway
-  'https://w3s.link/ipfs/', // Web3.Storage gateway
-  'https://ipfs.filebase.io/ipfs/', // Filebase gateway
-  'https://crustipfs.xyz/ipfs/', // Crust Network gateway
-  'https://ipfs.io/ipfs/', // Gateway oficial
+  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - excelente CORS
+  'https://dweb.link/ipfs/', // Protocol Labs - muy confiable
+  'https://ipfs.io/ipfs/', // Gateway oficial - buena compatibilidad
   'https://gateway.ipfs.io/ipfs/', // Gateway oficial alternativo
-  'https://gateway.pinata.cloud/ipfs/', // Pinata (puede tener rate limits)
+  'https://4everland.io/ipfs/', // 4everland - buen soporte CORS
+  'https://ipfs.filebase.io/ipfs/', // Filebase - confiable
+  'https://gateway.pinata.cloud/ipfs/', // Pinata - último recurso
 ];
 
 // Sistema de rate limiting por gateway
@@ -240,14 +237,15 @@ async function tryAlternativeStrategies(hash: string): Promise<string> {
     async () => {
       try {
         console.log('🔄 Intentando API de Pinata...');
-        // Intentar obtener desde Pinata con diferentes endpoints
-        const pinataUrls = [
-          `https://gateway.pinata.cloud/ipfs/${hash}`,
+        // Intentar obtener desde diferentes endpoints optimizados para CORS
+        const corsOptimizedUrls = [
+          `https://cloudflare-ipfs.com/ipfs/${hash}`,
           `https://${hash}.ipfs.dweb.link/`,
-          `https://${hash}.ipfs.cf-ipfs.com/`
+          `https://${hash}.ipfs.cf-ipfs.com/`,
+          `https://gateway.pinata.cloud/ipfs/${hash}`
         ];
         
-        for (const url of pinataUrls) {
+        for (const url of corsOptimizedUrls) {
           try {
             // Usar Promise.race para timeout más robusto
             const timeoutPromise = new Promise<never>((_, reject) => {
@@ -266,7 +264,7 @@ async function tryAlternativeStrategies(hash: string): Promise<string> {
             if (response.ok) {
               const content = await response.text();
               if (content && content.trim().length > 0) {
-                console.log(`✅ Éxito con estrategia Pinata: ${url.split('/')[2]}`);
+                console.log(`✅ Éxito con estrategia CORS optimizada: ${url.split('/')[2]}`);
                 return content;
               }
             }
@@ -274,9 +272,9 @@ async function tryAlternativeStrategies(hash: string): Promise<string> {
             continue; // Intentar siguiente URL
           }
         }
-        throw new Error('Todas las URLs de Pinata fallaron');
+        throw new Error('Todas las URLs CORS optimizadas fallaron');
       } catch (error) {
-        throw new Error(`Estrategia Pinata falló: ${error}`);
+        throw new Error(`Estrategia CORS optimizada falló: ${error}`);
       }
     },
     
@@ -287,7 +285,8 @@ async function tryAlternativeStrategies(hash: string): Promise<string> {
         const subdomainUrls = [
           `https://${hash}.ipfs.dweb.link/`,
           `https://${hash}.ipfs.cf-ipfs.com/`,
-          `https://${hash}.ipfs.4everland.io/`
+          `https://${hash}.ipfs.4everland.io/`,
+          `https://${hash}.ipfs.fleek.co/`
         ];
         
         for (const url of subdomainUrls) {
@@ -405,43 +404,62 @@ async function fetchFromGateway(url: string, timeout: number): Promise<string> {
 
   try {
     
-    // Función para hacer fetch con diferentes estrategias CORS
+    // Función para hacer fetch con diferentes estrategias CORS optimizadas para producción
     const fetchWithStrategies = async (): Promise<Response> => {
-      // Estrategia 1: CORS habilitado con headers optimizados
+      // Estrategia 1: Request simple sin headers complejos (mejor para CORS)
       try {
         const response = await fetch(url, {
           method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Accept': 'application/json, text/plain, */*',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
+          mode: 'cors'
         });
         return response;
       } catch (corsError) {
         console.warn(`⚠️ CORS falló para ${gateway}, intentando estrategias alternativas...`);
         
-        // Estrategia 2: Headers más simples
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-              'Accept': '*/*',
+        // Estrategia 2: Usar subdominios IPFS (mejor CORS)
+        if (gateway.includes('cloudflare') || gateway.includes('dweb.link')) {
+          try {
+            // Extraer hash de la URL
+            const hashMatch = url.match(/\/ipfs\/([^\/]+)/);
+            if (hashMatch) {
+              const hash = hashMatch[1];
+              const subdomainUrl = `https://${hash}.ipfs.dweb.link/`;
+              console.log(`🔄 Intentando subdominio: ${subdomainUrl}`);
+              
+              const response = await fetch(subdomainUrl, {
+                method: 'GET',
+                mode: 'cors'
+              });
+              return response;
             }
-          });
-          return response;
-        } catch (secondCorsError) {
-          // Estrategia 3: Request simple para gateways específicos
-          if (gateway.includes('dweb.link') || gateway.includes('4everland') || gateway.includes('cloudflare')) {
-            const response = await fetch(url, {
-              method: 'GET'
-            });
-            return response;
-          } else {
-            throw new Error('CORS bloqueado en todas las estrategias');
+          } catch (subdomainError) {
+            console.warn(`❌ Subdominio también falló: ${subdomainError}`);
           }
+        }
+        
+        // Estrategia 3: Proxy CORS (último recurso)
+        try {
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          console.log(`🔄 Usando proxy CORS: ${proxyUrl}`);
+          
+          const response = await fetch(proxyUrl, {
+            method: 'GET',
+            mode: 'cors'
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Crear una respuesta simulada con el contenido del proxy
+            return new Response(data.contents, {
+              status: 200,
+              statusText: 'OK',
+              headers: { 'Content-Type': 'text/plain' }
+            });
+          }
+          throw new Error('Proxy response not ok');
+        } catch (proxyError) {
+          console.warn(`❌ Proxy también falló: ${proxyError}`);
+          throw new Error('CORS bloqueado en todas las estrategias');
         }
       }
     };
