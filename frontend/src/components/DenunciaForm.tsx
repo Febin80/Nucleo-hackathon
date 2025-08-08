@@ -19,7 +19,6 @@ import {
 import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
 import { MediaUploader } from './MediaUploader'
-import { useHistorial } from '../contexts/HistorialContext'
 
 export const DenunciaForm = () => {
   const [tipoAcoso, setTipoAcoso] = useState('')
@@ -34,7 +33,6 @@ export const DenunciaForm = () => {
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
   const [ipfsHash, setIpfsHash] = useState<string | null>(null)
   const { crearDenuncia } = useDenunciaAnonimaCrear()
-  const { triggerRefresh } = useHistorial()
   const toast = useToast()
 
 
@@ -266,7 +264,7 @@ export const DenunciaForm = () => {
         title: '🎉 Denuncia creada exitosamente',
         description: 'Registrada en blockchain y contenido subido a IPFS',
         status: 'success',
-        duration: 5000,
+        duration: 8000,
         isClosable: true,
       })
       
@@ -278,15 +276,12 @@ export const DenunciaForm = () => {
       setEncryptionPassword(null)
       setIpfsHash(null)
       
-      // Trigger refresh del historial
-      triggerRefresh()
-      
-      // Mostrar toast informativo
+      // Mostrar toast informativo con instrucciones claras
       toast({
-        title: '🔄 Historial actualizado',
-        description: 'Ve a la pestaña "Historial" para ver tu nueva denuncia',
+        title: '📋 Para ver tu denuncia:',
+        description: '1. Ve a la pestaña "Historial" 2. Haz clic en "🔄 Actualizar" o activa "Auto-refresh"',
         status: 'info',
-        duration: 5000,
+        duration: 10000,
         isClosable: true,
       })
 
