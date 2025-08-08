@@ -16,7 +16,7 @@ import {
   Text,
   Divider
 } from '@chakra-ui/react'
-import { useDenunciaAnonima } from '../hooks/useDenunciaAnonima'
+import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
 import { MediaUploader } from './MediaUploader'
 
@@ -32,7 +32,7 @@ export const DenunciaForm = () => {
   const [encryptionPassword, setEncryptionPassword] = useState<string | null>(null)
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
   const [ipfsHash, setIpfsHash] = useState<string | null>(null)
-  const { crearDenuncia } = useDenunciaAnonima()
+  const { crearDenuncia } = useDenunciaAnonimaCrear()
   const toast = useToast()
 
 

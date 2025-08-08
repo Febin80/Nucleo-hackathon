@@ -1,5 +1,5 @@
 import { Box, VStack, Text, Heading, Spinner, Alert, AlertIcon, AlertTitle, AlertDescription, Divider } from '@chakra-ui/react'
-import { Denuncia } from '../hooks/useDenunciaAnonima'
+import { DenunciaSimple as Denuncia } from '../hooks/useDenunciaAnonimaSimple'
 
 interface DenunciaListProps {
   denuncias: Denuncia[]

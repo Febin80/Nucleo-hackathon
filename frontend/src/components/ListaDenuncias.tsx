@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useDenunciaAnonima } from '../hooks/useDenunciaAnonima'
+import { useDenunciaAnonimaSimple } from '../hooks/useDenunciaAnonimaSimple'
 import { Box, Heading, Text, Spinner, VStack, Badge, HStack, Divider, Button } from '@chakra-ui/react'
 
 const CONTRACT_ADDRESS = '0x7B339806c5Bf0bc8e12758D9E65b8806361b66f5'
@@ -11,7 +11,8 @@ import { PublicIPFSTest } from './PublicIPFSTest'
 import PinataTest from './PinataTest'
 
 export const ListaDenuncias = () => {
-  const { denuncias, actualizarDenuncias, loading, error, nuevaDenunciaDetectada } = useDenunciaAnonima()
+  const { denuncias, actualizarDenuncias, loading, error } = useDenunciaAnonimaSimple()
+  const nuevaDenunciaDetectada = false // No disponible en hook simple
 
   useEffect(() => {
     actualizarDenuncias()

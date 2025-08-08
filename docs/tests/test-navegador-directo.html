@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Directo del Historial Sin MetaMask</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .denuncia {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Test Directo del Historial Sin MetaMask</h1>
+        
+        <div class="status info">
+            <strong>Objetivo:</strong> Probar si el historial funciona directamente en el navegador sin MetaMask
+        </div>
+
+        <div id="status-container">
+            <div class="status warning">
+                <strong>Estado:</strong> Listo para probar
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button onclick="testHistorial()" id="testBtn">🚀 Probar Historial</button>
+            <button onclick="clearResults()" id="clearBtn">🧹 Limpiar</button>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Cargando denuncias...</p>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        // Configuración exacta del hook
+        const MANTLE_SEPOLIA_RPCS = [
+            'https://mantle-sepolia.drpc.org',
+            'https://rpc.sepolia.mantle.xyz',
+            'https://mantle-sepolia.gateway.tenderly.co',
+            'https://endpoints.omniatech.io/v1/mantle/sepolia/public',
+            'https://mantle-sepolia-testnet.rpc.thirdweb.com',
+        ];
+
+        const CONTRACT_ADDRESS = '0x7B339806c5Bf0bc8e12758D9E65b8806361b66f5';
+
+        // ABI simplificado
+        const DENUNCIA_ABI = [
+            "function totalDenuncias() view returns (uint256)",
+            "function obtenerDenuncia(uint256) view returns (tuple(address denunciante, string tipoAcoso, string ipfsHash, uint256 timestamp, bytes proof, uint256[] publicSignals, bool esPublica))"
+        ];
+
+        function addStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('testBtn').disabled = show;
+        }
+
+        async function getPublicProvider() {
+            addStatus('🔍 Buscando RPC público funcional...', 'info');
+            
+            for (const rpcUrl of MANTLE_SEPOLIA_RPCS) {
+                try {
+                    addStatus(`Probando RPC: ${rpcUrl.split('/')[2]}`, 'info');
+                    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+                    
+                    // Verificar que funciona
+                    const network = await provider.getNetwork();
+                    if (network.chainId === 5003) {
+                        addStatus(`✅ RPC funcional encontrado: ${rpcUrl.split('/')[2]}`, 'success');
+                        return provider;
+                    }
+                } catch (error) {
+                    addStatus(`❌ RPC ${rpcUrl.split('/')[2]} falló: ${error.message}`, 'error');
+                    continue;
+                }
+            }
+            
+            throw new Error('No se pudo conectar a ningún RPC público de Mantle Sepolia');
+        }
+
+        async function obtenerDenuncias() {
+            try {
+                addStatus('🚀 INICIANDO OBTENCIÓN DE DENUNCIAS SIN METAMASK', 'info');
+                
+                // SIEMPRE usar provider público (NUNCA MetaMask)
+                const provider = await getPublicProvider();
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, DENUNCIA_ABI, provider);
+
+                addStatus('📋 Consultando total de denuncias...', 'info');
+                
+                // Obtener el total de denuncias
+                const total = await contract.totalDenuncias();
+                const totalNumber = total.toNumber();
+                
+                addStatus(`✅ Total de denuncias encontradas: ${totalNumber}`, 'success');
+
+                if (totalNumber === 0) {
+                    addStatus('📝 No hay denuncias registradas en el contrato', 'warning');
+                    return [];
+                }
+
+                // Procesar denuncias de forma secuencial (limitado a 10 para el test)
+                const maxToProcess = Math.min(totalNumber, 10);
+                addStatus(`🔍 Procesando las primeras ${maxToProcess} denuncias...`, 'info');
+                
+                const resultados = [];
+                
+                for (let i = 0; i < maxToProcess; i++) {
+                    try {
+                        addStatus(`🔄 Procesando denuncia ${i + 1}/${maxToProcess}`, 'info');
+                        
+                        const denunciaStruct = await contract.obtenerDenuncia(i);
+                        const currentBlock = await provider.getBlockNumber();
+                        
+                        const denuncia = {
+                            id: i,
+                            denunciante: denunciaStruct.denunciante,
+                            tipoAcoso: denunciaStruct.tipoAcoso,
+                            descripcion: "Contenido almacenado en IPFS",
+                            ipfsHash: denunciaStruct.ipfsHash,
+                            timestamp: new Date(denunciaStruct.timestamp.toNumber() * 1000),
+                            blockNumber: currentBlock,
+                            esPublica: denunciaStruct.esPublica !== undefined ? denunciaStruct.esPublica : true
+                        };
+                        
+                        resultados.push(denuncia);
+                        addStatus(`✅ Denuncia ${i} procesada: ${denuncia.tipoAcoso}`, 'success');
+                        
+                        // Delay entre denuncias para evitar rate limiting
+                        if (i < maxToProcess - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                        
+                    } catch (error) {
+                        addStatus(`❌ Error al procesar denuncia ${i}: ${error.message}`, 'error');
+                        continue;
+                    }
+                }
+                
+                addStatus(`🎉 Procesamiento completado: ${resultados.length} denuncias válidas`, 'success');
+                
+                // Ordenar las denuncias por timestamp (más recientes primero)
+                const denunciasOrdenadas = resultados.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+                
+                return denunciasOrdenadas;
+                
+            } catch (err) {
+                addStatus(`❌ ERROR CRÍTICO: ${err.message}`, 'error');
+                throw err;
+            }
+        }
+
+        function mostrarDenuncias(denuncias) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (denuncias.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="status warning">
+                        <h3>📝 No hay denuncias para mostrar</h3>
+                        <p>El contrato no tiene denuncias registradas o hubo un error al cargarlas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="status success">
+                    <h3>🎉 ¡Historial cargado exitosamente!</h3>
+                    <p>Se encontraron <strong>${denuncias.length} denuncias</strong> sin necesidad de MetaMask</p>
+                </div>
+                <h3>📋 Denuncias Encontradas:</h3>
+            `;
+
+            denuncias.forEach((denuncia, index) => {
+                html += `
+                    <div class="denuncia">
+                        <h4>Denuncia #${denuncia.id} - ${denuncia.tipoAcoso}</h4>
+                        <p><strong>Denunciante:</strong> ${denuncia.denunciante.slice(0, 10)}...${denuncia.denunciante.slice(-8)}</p>
+                        <p><strong>Fecha:</strong> ${denuncia.timestamp.toLocaleString()}</p>
+                        <p><strong>IPFS Hash:</strong> ${denuncia.ipfsHash.slice(0, 20)}...${denuncia.ipfsHash.slice(-10)}</p>
+                        <p><strong>Pública:</strong> ${denuncia.esPublica ? '✅ Sí' : '❌ No'}</p>
+                        <p><strong>Descripción:</strong> ${denuncia.descripcion}</p>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function testHistorial() {
+            try {
+                showLoading(true);
+                document.getElementById('results').innerHTML = '';
+                
+                addStatus('🎯 INICIANDO TEST DEL HISTORIAL', 'info');
+                addStatus('⚠️ Este test NO requiere MetaMask', 'warning');
+                
+                const denuncias = await obtenerDenuncias();
+                
+                mostrarDenuncias(denuncias);
+                
+                if (denuncias.length > 0) {
+                    addStatus(`🎉 TEST EXITOSO: ${denuncias.length} denuncias cargadas sin MetaMask`, 'success');
+                } else {
+                    addStatus('⚠️ TEST COMPLETADO: No se encontraron denuncias', 'warning');
+                }
+                
+            } catch (error) {
+                addStatus(`❌ TEST FALLÓ: ${error.message}`, 'error');
+                document.getElementById('results').innerHTML = `
+                    <div class="status error">
+                        <h3>❌ Error en el Test</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Posibles causas:</strong></p>
+                        <ul>
+                            <li>Problemas de conectividad a internet</li>
+                            <li>RPCs de Mantle Sepolia no disponibles</li>
+                            <li>Contrato no desplegado correctamente</li>
+                            <li>Problemas de CORS en el navegador</li>
+                        </ul>
+                    </div>
+                `;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('status-container').innerHTML = `
+                <div class="status warning">
+                    <strong>Estado:</strong> Listo para probar
+                </div>
+            `;
+        }
+
+        // Detectar si MetaMask está instalado
+        window.addEventListener('load', () => {
+            if (typeof window.ethereum !== 'undefined') {
+                addStatus('🦊 MetaMask detectado (pero NO se usará para este test)', 'info');
+            } else {
+                addStatus('✅ MetaMask NO detectado - perfecto para este test', 'success');
+            }
+            
+            addStatus('🎯 Test listo - haz clic en "Probar Historial" para comenzar', 'info');
+        });
+    </script>
+</body>
+</html>

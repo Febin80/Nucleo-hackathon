@@ -1,7 +1,7 @@
 import { Container, Heading, VStack, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import { Home } from './components/Home'
 import { DenunciaForm } from './components/DenunciaForm'
-import { ListaDenuncias } from './components/ListaDenuncias'
+import { ListaDenunciasSimple } from './components/ListaDenunciasSimple'
 import { About } from './components/About'
 
 function App() {
@@ -30,7 +30,7 @@ function App() {
             </TabPanel>
 
             <TabPanel>
-              <ListaDenuncias />
+              <ListaDenunciasSimple />
             </TabPanel>
 
             <TabPanel>
