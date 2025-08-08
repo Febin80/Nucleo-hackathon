@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
+import { useHistorial } from '../contexts/HistorialContext'
 
 // Dirección del contrato
 const CONTRACT_ADDRESS = '0x7B339806c5Bf0bc8e12758D9E65b8806361b66f5';
@@ -35,6 +36,7 @@ export const useDenunciaAnonimaSimple = () => {
   const [denuncias, setDenuncias] = useState<DenunciaSimple[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { shouldRefresh, clearRefresh, lastUpdate } = useHistorial()
 
   // Función ultra-simple para obtener provider
   const getProvider = async () => {
@@ -92,24 +94,28 @@ export const useDenunciaAnonimaSimple = () => {
         return
       }
 
-      // Obtener denuncias de forma ultra-simple (máximo 10)
+      // Obtener denuncias más recientes primero (máximo 10)
       const maxToGet = Math.min(totalNumber, 10)
-      console.log(`📋 Obteniendo ${maxToGet} denuncias...`)
-      
+      console.log(`📋 Obteniendo ${maxToGet} denuncias más recientes...`)
+
       const denunciasObtenidas: DenunciaSimple[] = []
 
-      for (let i = 0; i < maxToGet; i++) {
+      // Construir los IDs desde el último hacia atrás: total-1, total-2, ...
+      const idsRecientes = Array.from({ length: maxToGet }, (_, idx) => totalNumber - 1 - idx)
+
+      for (let idx = 0; idx < idsRecientes.length; idx++) {
+        const id = idsRecientes[idx]
         try {
-          console.log(`Obteniendo denuncia ${i + 1}/${maxToGet}`)
-          
+          console.log(`Obteniendo denuncia id=${id} (${idx + 1}/${maxToGet})`)
+
           // Obtener denuncia con timeout
           const denunciaStruct = await Promise.race([
-            contract.obtenerDenuncia(i),
+            contract.obtenerDenuncia(id),
             new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
           ])
-          
+
           const denuncia: DenunciaSimple = {
-            id: i,
+            id,
             denunciante: denunciaStruct.denunciante,
             tipoAcoso: denunciaStruct.tipoAcoso,
             descripcion: `Denuncia de ${denunciaStruct.tipoAcoso} - Ver contenido completo en IPFS`,
@@ -117,27 +123,23 @@ export const useDenunciaAnonimaSimple = () => {
             timestamp: new Date(Number(denunciaStruct.timestamp) * 1000),
             esPublica: denunciaStruct.esPublica !== undefined ? denunciaStruct.esPublica : true
           }
-          
+
           denunciasObtenidas.push(denuncia)
-          console.log(`✅ Denuncia ${i} obtenida: ${denuncia.tipoAcoso}`)
-          
+          console.log(`✅ Denuncia id=${id} obtenida: ${denuncia.tipoAcoso}`)
+
           // Delay simple para evitar rate limiting
-          if (i < maxToGet - 1) {
+          if (idx < maxToGet - 1) {
             await new Promise(resolve => setTimeout(resolve, 800))
           }
-          
         } catch (error) {
-          console.error(`❌ Error en denuncia ${i}:`, error instanceof Error ? error.message : 'Error desconocido')
+          console.error(`❌ Error al obtener denuncia id=${id}:`, error instanceof Error ? error.message : 'Error desconocido')
           continue
         }
       }
 
-      // Ordenar por fecha (más recientes primero)
-      const denunciasOrdenadas = denunciasObtenidas.sort((a, b) => 
-        b.timestamp.getTime() - a.timestamp.getTime()
-      )
-
-      console.log(`🎉 ÉXITO: ${denunciasOrdenadas.length} denuncias cargadas`)
+      // Ya vienen en orden reciente → asegurar orden por timestamp por robustez
+      const denunciasOrdenadas = denunciasObtenidas.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      console.log(`🎉 ÉXITO: ${denunciasOrdenadas.length} denuncias cargadas (más recientes primero)`)
       setDenuncias(denunciasOrdenadas)
 
     } catch (err) {
@@ -156,11 +158,21 @@ export const useDenunciaAnonimaSimple = () => {
     await obtenerDenuncias()
   }
 
-  // useEffect ultra-simple
+  // useEffect que escucha cambios del contexto
   useEffect(() => {
     console.log('🎯 Hook simple montado - cargando denuncias...')
     obtenerDenuncias()
-  }, []) // Sin dependencias
+  }, []) // Carga inicial
+
+  // useEffect que escucha el contexto para refrescar
+  useEffect(() => {
+    if (shouldRefresh) {
+      console.log('🔄 Contexto solicita refresh - actualizando denuncias...')
+      obtenerDenuncias().then(() => {
+        clearRefresh()
+      })
+    }
+  }, [shouldRefresh, lastUpdate, clearRefresh]) // Escucha cambios del contexto
 
   return {
     denuncias,

@@ -19,6 +19,7 @@ import {
 import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
 import { MediaUploader } from './MediaUploader'
+import { useHistorial } from '../contexts/HistorialContext'
 
 export const DenunciaForm = () => {
   const [tipoAcoso, setTipoAcoso] = useState('')
@@ -33,6 +34,7 @@ export const DenunciaForm = () => {
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
   const [ipfsHash, setIpfsHash] = useState<string | null>(null)
   const { crearDenuncia } = useDenunciaAnonimaCrear()
+  const { triggerRefresh } = useHistorial()
   const toast = useToast()
 
 
@@ -264,23 +266,29 @@ export const DenunciaForm = () => {
         title: '🎉 Denuncia creada exitosamente',
         description: 'Registrada en blockchain y contenido subido a IPFS',
         status: 'success',
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       })
       
-      // Mostrar toast de refresh
+      // Limpiar formulario
+      setTipoAcoso('')
+      setDescripcion('')
+      setMediaFiles([])
+      setEncryptedContent(null)
+      setEncryptionPassword(null)
+      setIpfsHash(null)
+      
+      // Trigger refresh del historial
+      triggerRefresh()
+      
+      // Mostrar toast informativo
       toast({
-        title: '🔄 Actualizando página...',
-        description: 'Recargando para mostrar la nueva denuncia',
+        title: '🔄 Historial actualizado',
+        description: 'Ve a la pestaña "Historial" para ver tu nueva denuncia',
         status: 'info',
-        duration: 2000,
+        duration: 5000,
         isClosable: true,
       })
-      
-      // Refresh automático después de 2 segundos
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
 
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al crear la denuncia')
