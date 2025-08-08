@@ -3,6 +3,7 @@ import { useDenunciaAnonimaSimple } from '../hooks/useDenunciaAnonimaSimple'
 import { Box, Heading, Text, Spinner, VStack, Button, Alert, AlertIcon, Divider, HStack } from '@chakra-ui/react'
 import { DiagnosticoRed } from './DiagnosticoRed'
 import { IPFSContentViewer } from './IPFSContentViewer'
+import { HistorialDebug } from './HistorialDebug'
 
 export const ListaDenunciasSimple = () => {
   const { denuncias, loading, error, actualizarDenuncias } = useDenunciaAnonimaSimple()
@@ -43,6 +44,10 @@ export const ListaDenunciasSimple = () => {
         <Divider />
         
         <DiagnosticoRed />
+        
+        <Divider />
+        
+        <HistorialDebug />
       </VStack>
     )
   }
@@ -68,6 +73,13 @@ export const ListaDenunciasSimple = () => {
             Si el problema persiste, usa el diagnóstico para verificar la conectividad:
           </Text>
           <DiagnosticoRed />
+          
+          <Divider my={6} />
+          
+          <Text fontSize="sm" color="red.600" mb={4} textAlign="center" fontWeight="bold">
+            🔧 Debug avanzado del historial:
+          </Text>
+          <HistorialDebug />
         </Box>
       </VStack>
     )
