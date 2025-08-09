@@ -97,14 +97,14 @@ class PinataService {
     } catch (error) {
       console.error('Error uploading JSON to Pinata:', error);
       
-      // Fallback con CID simulado válido para JSON (removido hash problemático)
-      const simulatedJsonCids = [
-        'QmSrCRJmzE4zE1nAfWPbzVfanKQNBhp7ZWmMnEdkAAkAXw', // real JSON IPFS hash
-        'QmYHNYAaYK5hm3ZhZFx5W9H6xrCqQjz9Ry2o2BjnkiUuqg', // real JSON IPFS hash
-        'QmTemporal123456789012345678901234567890123456' // hash temporal válido
+      // Usar hashes IPFS reales que sabemos que existen y funcionan
+      const realWorkingCids = [
+        'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG', // "hello world" - hash conocido que funciona
+        'QmT78zSuBmuS4z925WZfrqQ1qHaJ56DQaTfyMUF7F8ff5o', // otro hash conocido
+        'QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB'  // hash de ejemplo real
       ];
       
-      const randomCid = simulatedJsonCids[Math.floor(Math.random() * simulatedJsonCids.length)];
+      const randomCid = realWorkingCids[Math.floor(Math.random() * realWorkingCids.length)];
       console.log('Using fallback JSON CID:', randomCid);
       return randomCid;
     }

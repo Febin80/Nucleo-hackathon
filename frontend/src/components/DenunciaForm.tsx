@@ -20,6 +20,7 @@ import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
 import { useNavigation } from '../contexts/NavigationContext'
 import { MediaUploader } from './MediaUploader'
+import { IPFSUploadService } from '../services/ipfs-upload'
 
 export const DenunciaForm = () => {
   const [tipoAcoso, setTipoAcoso] = useState('')
@@ -184,15 +185,31 @@ export const DenunciaForm = () => {
           console.log('📋 Estructura de datos final:', denunciaData);
           ipfsHashReal = await pinataService.uploadJSON(denunciaData);
         } else {
-          // Si no hay multimedia, subir como JSON normal
-          ipfsHashReal = await pinataService.uploadJSON({
+          // Si no hay multimedia, usar nuestro servicio de upload real
+          console.log('🚀 Usando servicio de upload real a IPFS...');
+          
+          const denunciaContent = IPFSUploadService.createDenunciaContent({
             tipo: tipoAcoso,
             descripcion: descripcion,
-            metadata: {
-              esPublica: esPublica,
-              timestamp: new Date().toISOString()
-            }
+            timestamp: new Date().toISOString(),
+            encrypted: false
           });
+          
+          try {
+            ipfsHashReal = await IPFSUploadService.uploadContent(denunciaContent);
+            console.log('✅ Contenido subido exitosamente con hash real:', ipfsHashReal);
+          } catch (uploadError) {
+            console.warn('⚠️ Upload real falló, usando Pinata como fallback...');
+            ipfsHashReal = await pinataService.uploadJSON({
+              tipo: tipoAcoso,
+              descripcion: descripcion,
+              metadata: {
+                esPublica: esPublica,
+                timestamp: new Date().toISOString(),
+                fallback: true
+              }
+            });
+          }
         }
 
         console.log('✅ Hash IPFS real obtenido:', ipfsHashReal);
