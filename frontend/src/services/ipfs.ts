@@ -201,8 +201,9 @@ export async function getIPFSContent(hash: string): Promise<string> {
     return getExampleContent(hash);
   }
 
-  // Estrategia 4: Intentar con múltiples gateways
+  // Estrategia 4: Intentar con múltiples gateways (más agresivo)
   try {
+    console.log('🚀 Intentando gateways con estrategia agresiva...');
     const content = await tryGatewaysSequentially(hash);
     
     // Registrar éxito en circuit breaker
@@ -213,10 +214,7 @@ export async function getIPFSContent(hash: string): Promise<string> {
     
     return content;
   } catch (gatewayError) {
-    // Registrar fallo en circuit breaker
-    circuitBreaker.recordFailure();
-    console.error('❌ Todos los gateways directos fallaron para hash:', hash.slice(0, 10));
-    console.error('Error:', gatewayError);
+    console.error('❌ Gateways directos fallaron:', gatewayError);
     
     // Estrategia 5: Intentar con servicios proxy/alternativos
     try {
@@ -231,16 +229,66 @@ export async function getIPFSContent(hash: string): Promise<string> {
       
       return content;
     } catch (alternativeError) {
-      console.error('❌ Estrategias alternativas también fallaron:', alternativeError);
+      console.error('❌ Estrategias alternativas fallaron:', alternativeError);
       
-      // Solo como último recurso, devolver contenido de ejemplo
-      console.log('📄 Usando contenido de ejemplo como último recurso');
-      const exampleContent = getExampleContent(hash);
-      
-      // No cachear contenido de ejemplo
-      return exampleContent;
+      // Estrategia 6: Último intento con gateways individuales y timeouts largos
+      try {
+        console.log('🔄 Último intento con timeouts extendidos...');
+        const content = await tryLastResortStrategy(hash);
+        
+        setCachedContent(hash, content);
+        return content;
+      } catch (lastResortError) {
+        console.error('❌ Todos los intentos fallaron:', lastResortError);
+        
+        // Registrar fallo en circuit breaker
+        circuitBreaker.recordFailure();
+        
+        // Solo como último recurso, devolver contenido de ejemplo
+        console.log('📄 Usando contenido de ejemplo como último recurso');
+        const exampleContent = getExampleContent(hash);
+        
+        // No cachear contenido de ejemplo
+        return exampleContent;
+      }
     }
   }
+}
+
+// Función de último recurso con timeouts extendidos
+async function tryLastResortStrategy(hash: string): Promise<string> {
+  console.log('🆘 Estrategia de último recurso - timeouts extendidos');
+  
+  const lastResortGateways = [
+    'https://gateway.pinata.cloud/ipfs/',
+    'https://cloudflare-ipfs.com/ipfs/',
+    'https://ipfs.io/ipfs/'
+  ];
+  
+  for (const gateway of lastResortGateways) {
+    try {
+      console.log(`🔄 Último intento con ${gateway}`);
+      const url = gateway + hash;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        signal: AbortSignal.timeout(30000) // 30 segundos timeout
+      });
+      
+      if (response.ok) {
+        const content = await response.text();
+        console.log(`✅ Éxito en último recurso con ${gateway}`);
+        return content;
+      } else {
+        console.warn(`⚠️ ${gateway} respondió con ${response.status}`);
+      }
+    } catch (error) {
+      console.warn(`⚠️ Error en último recurso con ${gateway}:`, error);
+    }
+  }
+  
+  throw new Error('Todos los intentos de último recurso fallaron');
 }
 
 // Función para intentar estrategias alternativas cuando los gateways directos fallan

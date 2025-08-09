@@ -3,6 +3,7 @@ import { Home } from './components/Home'
 import { DenunciaForm } from './components/DenunciaForm'
 import { HistorialConActualizacion } from './components/HistorialConActualizacion'
 import { About } from './components/About'
+import { IPFSDebugTest } from './components/IPFSDebugTest'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 
 function AppContent() {
@@ -26,6 +27,7 @@ function AppContent() {
             <Tab>📝 Crear Denuncia</Tab>
             <Tab>📋 Historial</Tab>
             <Tab>📄 Whitepaper</Tab>
+            <Tab>🧪 Debug IPFS</Tab>
           </TabList>
 
           <TabPanels>
@@ -43,6 +45,10 @@ function AppContent() {
 
             <TabPanel>
               <About />
+            </TabPanel>
+
+            <TabPanel>
+              <IPFSDebugTest />
             </TabPanel>
           </TabPanels>
         </Tabs>
