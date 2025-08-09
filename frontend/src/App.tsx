@@ -4,6 +4,7 @@ import { DenunciaForm } from './components/DenunciaForm'
 import { HistorialConActualizacion } from './components/HistorialConActualizacion'
 import { About } from './components/About'
 import { IPFSDebugTest } from './components/IPFSDebugTest'
+import { IPFSStatusChecker } from './components/IPFSStatusChecker'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 
 function AppContent() {
@@ -28,6 +29,7 @@ function AppContent() {
             <Tab>📋 Historial</Tab>
             <Tab>📄 Whitepaper</Tab>
             <Tab>🧪 Debug IPFS</Tab>
+            <Tab>🔍 Estado IPFS</Tab>
           </TabList>
 
           <TabPanels>
@@ -49,6 +51,10 @@ function AppContent() {
 
             <TabPanel>
               <IPFSDebugTest />
+            </TabPanel>
+
+            <TabPanel>
+              <IPFSStatusChecker />
             </TabPanel>
           </TabPanels>
         </Tabs>

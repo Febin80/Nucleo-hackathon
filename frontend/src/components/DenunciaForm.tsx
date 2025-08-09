@@ -21,6 +21,7 @@ import { EncryptionForm } from './EncryptionForm'
 import { useNavigation } from '../contexts/NavigationContext'
 import { MediaUploader } from './MediaUploader'
 import { IPFSUploadService } from '../services/ipfs-upload'
+import { StorageFallbackService } from '../services/storage-fallback'
 
 export const DenunciaForm = () => {
   const [tipoAcoso, setTipoAcoso] = useState('')
@@ -199,16 +200,39 @@ export const DenunciaForm = () => {
             ipfsHashReal = await IPFSUploadService.uploadContent(denunciaContent);
             console.log('✅ Contenido subido exitosamente con hash real:', ipfsHashReal);
           } catch (uploadError) {
-            console.warn('⚠️ Upload real falló, usando Pinata como fallback...');
-            ipfsHashReal = await pinataService.uploadJSON({
-              tipo: tipoAcoso,
-              descripcion: descripcion,
-              metadata: {
-                esPublica: esPublica,
+            console.warn('⚠️ Upload real falló, intentando Pinata...');
+            try {
+              ipfsHashReal = await pinataService.uploadJSON({
+                tipo: tipoAcoso,
+                descripcion: descripcion,
+                metadata: {
+                  esPublica: esPublica,
+                  timestamp: new Date().toISOString(),
+                  fallback: 'pinata'
+                }
+              });
+              console.log('✅ Contenido subido a Pinata:', ipfsHashReal);
+            } catch (pinataError) {
+              console.warn('⚠️ Pinata también falló, usando almacenamiento local...');
+              
+              const fallbackContent = StorageFallbackService.createDenunciaContent({
+                tipo: tipoAcoso,
+                descripcion: descripcion,
                 timestamp: new Date().toISOString(),
-                fallback: true
-              }
-            });
+                encrypted: false
+              });
+              
+              ipfsHashReal = StorageFallbackService.storeContent(fallbackContent);
+              console.log('✅ Contenido almacenado localmente con hash mock:', ipfsHashReal);
+              
+              toast({
+                title: '⚠️ Almacenamiento local',
+                description: 'IPFS no disponible. Contenido guardado localmente.',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+              });
+            }
           }
         }
 

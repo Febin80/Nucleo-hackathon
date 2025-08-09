@@ -1,4 +1,5 @@
 import { pinataService } from './pinata';
+import { StorageFallbackService } from './storage-fallback';
 
 export interface IPFSUploadResult {
   cid: string;
@@ -174,11 +175,23 @@ export async function getIPFSContent(hash: string): Promise<string> {
   
   console.log(`🔍 Obteniendo contenido IPFS para hash: ${hash.slice(0, 10)}...`);
   
-  // Estrategia 0: Detectar hashes temporales y devolver contenido de ejemplo inmediatamente
+  // Estrategia 0: Verificar si es un hash mock (almacenamiento local)
+  if (hash.startsWith('QmMock')) {
+    console.log(`🏠 Hash mock detectado, buscando en almacenamiento local: ${hash.slice(0, 15)}...`);
+    const localContent = StorageFallbackService.retrieveContent(hash);
+    if (localContent) {
+      setCachedContent(hash, localContent);
+      return localContent;
+    } else {
+      console.warn(`⚠️ Contenido mock no encontrado para hash: ${hash}`);
+      return getExampleContent(hash);
+    }
+  }
+  
+  // Estrategia 1: Detectar hashes temporales y devolver contenido de ejemplo inmediatamente
   if (hash.startsWith('QmTemporal')) {
     console.log(`⚠️ Hash temporal detectado: ${hash.slice(0, 15)}... - Devolviendo contenido de ejemplo`);
     const exampleContent = getExampleContent(hash);
-    // No cachear contenido temporal
     return exampleContent;
   }
   
