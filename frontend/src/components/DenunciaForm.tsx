@@ -301,6 +301,11 @@ export const DenunciaForm = () => {
           duration: 3000,
           isClosable: true,
         })
+        
+        // Reiniciar la página después de 3 segundos para asegurar que todo se actualice
+        setTimeout(() => {
+          window.location.reload()
+        }, 3000)
       }, 2000)
 
     } catch (error) {
