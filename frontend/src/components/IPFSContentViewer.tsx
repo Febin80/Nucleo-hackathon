@@ -76,9 +76,12 @@ export const IPFSContentViewer = ({
     setLoading(true)
 
     try {
-      console.log(`🔍 Cargando contenido IPFS: ${hash.slice(0, 10)}...`)
+      console.log(`🔍 IPFSContentViewer: Cargando contenido para hash: ${hash.slice(0, 15)}...`)
+      console.log(`📊 Hash completo: ${hash}`)
       
       const ipfsContent = await getIPFSContent(hash)
+      console.log(`📄 Contenido IPFS recibido, length: ${ipfsContent.length}`)
+      console.log(`🔍 Primeros 200 caracteres:`, ipfsContent.slice(0, 200))
       setRawContent(ipfsContent)
 
       // Verificar si el contenido está cifrado
@@ -188,21 +191,46 @@ export const IPFSContentViewer = ({
     setError(null)
 
     try {
+      console.log('🔓 Intentando descifrar contenido...')
+      console.log('📄 Contenido raw length:', rawContent.length)
+      console.log('🔑 Password length:', password.length)
+      
       const decryptedContent = EncryptionService.decryptPackage(rawContent, password)
+      console.log('✅ Descifrado exitoso, content length:', decryptedContent.length)
+      
       setContent(decryptedContent)
 
       toast({
-        title: 'Éxito',
-        description: 'Contenido descifrado correctamente',
+        title: '🔓 Contenido descifrado',
+        description: 'El contenido ha sido descifrado correctamente',
         status: 'success',
         duration: 3000,
         isClosable: true,
       })
     } catch (err: any) {
-      setError(err.message)
+      console.error('❌ Error de descifrado:', err)
+      
+      let errorMessage = 'Error desconocido'
+      let errorDescription = 'Verifica la contraseña e intenta nuevamente'
+      
+      if (err.message.includes('Contraseña incorrecta')) {
+        errorMessage = 'Contraseña incorrecta'
+        errorDescription = 'La contraseña ingresada no es correcta para este contenido'
+      } else if (err.message.includes('corrupto')) {
+        errorMessage = 'Contenido corrupto'
+        errorDescription = 'El contenido cifrado parece estar dañado'
+      } else if (err.message.includes('JSON')) {
+        errorMessage = 'Formato inválido'
+        errorDescription = 'El contenido no tiene el formato de cifrado esperado'
+      } else if (err.message.includes('Versión')) {
+        errorMessage = 'Versión no soportada'
+        errorDescription = 'Este contenido fue cifrado con una versión no compatible'
+      }
+      
+      setError(`${errorMessage}: ${errorDescription}`)
       toast({
-        title: 'Error de descifrado',
-        description: 'Contraseña incorrecta o contenido corrupto',
+        title: `🚫 ${errorMessage}`,
+        description: errorDescription,
         status: 'error',
         duration: 5000,
         isClosable: true,

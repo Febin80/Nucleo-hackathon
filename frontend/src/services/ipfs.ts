@@ -99,9 +99,11 @@ function setCachedContent(hash: string, content: string): void {
 
 // Lista de gateways IPFS optimizada para producción con mejor CORS
 const IPFS_GATEWAYS = [
+  'https://gateway.pinata.cloud/ipfs/', // Pinata - mejor para contenido reciente
   'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - mejor CORS
   'https://dweb.link/ipfs/', // Protocol Labs - confiable
-  'https://gateway.pinata.cloud/ipfs/', // Pinata - bueno para contenido reciente
+  'https://4everland.io/ipfs/', // 4everland - buen CORS
+  'https://nftstorage.link/ipfs/', // NFT.Storage - confiable
   'https://ipfs.io/ipfs/', // Gateway oficial - como fallback
 ];
 
@@ -697,27 +699,47 @@ function getExampleContent(hash: string): string {
     }, null, 2);
   }
   
-  // Para hashes que no existen o están inaccesibles
+  // Para hashes que no existen o están inaccesibles - mostrar ejemplo realista
   return JSON.stringify({
-    error: "Contenido IPFS no disponible",
-    hash: hash.slice(0, 15) + "...",
-    titulo: "Denuncia no disponible",
-    descripcion: "El contenido de esta denuncia no está disponible actualmente. Esto puede deberse a que el contenido fue eliminado de la red IPFS o nunca se subió correctamente.",
-    tipo: "contenido_no_disponible",
-    estado: "inaccesible",
-    posibles_causas: [
-      "El contenido fue eliminado de la red IPFS",
-      "El hash es inválido o corrupto",
-      "Problemas temporales de conectividad",
-      "El contenido nunca se subió correctamente"
-    ],
-    sugerencias: [
-      "Contactar al denunciante para re-subir el contenido",
-      "Verificar si hay una copia de respaldo",
-      "Intentar nuevamente más tarde"
-    ],
+    tipo: "denuncia_anonima",
+    categoria: "ejemplo_contenido",
+    titulo: "Contenido IPFS no disponible - Ejemplo de estructura",
+    descripcion: "El contenido real no pudo ser recuperado de IPFS. Este es un ejemplo de cómo se estructuran las denuncias en el sistema.",
+    contenido_ejemplo: {
+      tipo_acoso: "acoso_laboral",
+      descripcion_detallada: "Ejemplo: Mi supervisor me ha estado acosando verbalmente durante las últimas semanas, creando un ambiente de trabajo hostil...",
+      evidencias: [
+        {
+          tipo: "texto",
+          descripcion: "Registro de incidentes con fechas y testigos"
+        },
+        {
+          tipo: "multimedia",
+          descripcion: "Capturas de pantalla de mensajes o grabaciones (si las hubiera)"
+        }
+      ],
+      metadata: {
+        fecha_creacion: new Date().toISOString(),
+        anonimo: true,
+        verificado: false
+      }
+    },
+    estado_ipfs: {
+      error: "Contenido no disponible",
+      hash_original: hash.slice(0, 15) + "...",
+      posibles_causas: [
+        "El contenido fue eliminado de la red IPFS",
+        "Problemas temporales de conectividad",
+        "Hash inválido o corrupto"
+      ],
+      que_hacer: [
+        "Intentar nuevamente más tarde",
+        "Verificar que el hash sea correcto",
+        "Contactar soporte si el problema persiste"
+      ]
+    },
     timestamp: new Date().toISOString(),
-    nota: "Este es contenido de fallback generado automáticamente"
+    nota: "⚠️ Este es contenido de ejemplo. El contenido real no pudo ser recuperado de IPFS."
   }, null, 2);
 }
 
