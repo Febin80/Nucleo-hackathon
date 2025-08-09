@@ -18,6 +18,7 @@ import {
 } from '@chakra-ui/react'
 import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
+import { useNavigation } from '../contexts/NavigationContext'
 import { MediaUploader } from './MediaUploader'
 
 export const DenunciaForm = () => {
@@ -33,6 +34,7 @@ export const DenunciaForm = () => {
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
   const [ipfsHash, setIpfsHash] = useState<string | null>(null)
   const { crearDenuncia } = useDenunciaAnonimaCrear()
+  const { navigateToHistorial } = useNavigation()
   const toast = useToast()
 
 
@@ -280,14 +282,26 @@ export const DenunciaForm = () => {
       localStorage.setItem('activateAutoRefresh', 'true')
       localStorage.setItem('newDenunciaCreated', Date.now().toString())
       
-      // Mostrar toast informativo con instrucciones claras y rápidas
+      // Mostrar toast y navegar automáticamente al historial
       toast({
-        title: '🎉 ¡Denuncia creada! Auto-refresh activado',
-        description: 'Ve a "Historial" - el auto-refresh se activará automáticamente para mostrar tu denuncia',
+        title: '🎉 ¡Denuncia creada exitosamente!',
+        description: 'Redirigiendo al historial para ver tu denuncia...',
         status: 'success',
-        duration: 8000,
+        duration: 3000,
         isClosable: true,
       })
+
+      // Navegar al historial después de un breve delay
+      setTimeout(() => {
+        navigateToHistorial()
+        toast({
+          title: '📋 Navegando al historial',
+          description: 'Auto-refresh activado para mostrar tu nueva denuncia',
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        })
+      }, 2000)
 
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al crear la denuncia')

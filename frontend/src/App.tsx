@@ -3,9 +3,11 @@ import { Home } from './components/Home'
 import { DenunciaForm } from './components/DenunciaForm'
 import { HistorialConActualizacion } from './components/HistorialConActualizacion'
 import { About } from './components/About'
+import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 
+function AppContent() {
+  const { activeTab, setActiveTab } = useNavigation()
 
-function App() {
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8} align="stretch">
@@ -13,7 +15,12 @@ function App() {
           DenunciaChain - Denuncias Anónimas
         </Heading>
         
-        <Tabs variant="enclosed" colorScheme="blue" defaultIndex={0}>
+        <Tabs 
+          variant="enclosed" 
+          colorScheme="blue" 
+          index={activeTab}
+          onChange={setActiveTab}
+        >
           <TabList>
             <Tab>🏠 Inicio</Tab>
             <Tab>📝 Crear Denuncia</Tab>
@@ -41,6 +48,14 @@ function App() {
         </Tabs>
       </VStack>
     </Container>
+  )
+}
+
+function App() {
+  return (
+    <NavigationProvider>
+      <AppContent />
+    </NavigationProvider>
   )
 }
 

@@ -59,7 +59,7 @@ export const HistorialConActualizacion = () => {
       console.log('🔄 Auto-refresh rápido activado - actualizando denuncias...')
       await actualizarDenuncias()
       setLastRefresh(new Date())
-    }, 3000) // 3 segundos para respuesta más rápida
+    }, 15000) // 15 segundos para balance entre actualización y rendimiento
 
     return () => clearInterval(interval)
   }, [autoRefresh, actualizarDenuncias])
@@ -205,7 +205,7 @@ export const HistorialConActualizacion = () => {
             
             {autoRefresh && (
               <Badge colorScheme="green" fontSize="xs" variant="solid">
-                🔄 Auto-refresh rápido (cada 3s)
+                🔄 Auto-refresh (cada 15s)
               </Badge>
             )}
           </VStack>
