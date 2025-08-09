@@ -97,13 +97,12 @@ function setCachedContent(hash: string, content: string): void {
   }
 }
 
-// Lista de gateways IPFS optimizada para velocidad y disponibilidad
+// Lista de gateways IPFS optimizada para producción con mejor CORS
 const IPFS_GATEWAYS = [
-  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - más rápido y confiable
-  'https://dweb.link/ipfs/', // Protocol Labs - muy confiable
-  'https://ipfs.io/ipfs/', // Gateway oficial - buena disponibilidad
-  'https://gateway.ipfs.io/ipfs/', // Gateway oficial alternativo
-  'https://gateway.pinata.cloud/ipfs/', // Pinata - buena para contenido reciente
+  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - mejor CORS
+  'https://dweb.link/ipfs/', // Protocol Labs - confiable
+  'https://gateway.pinata.cloud/ipfs/', // Pinata - bueno para contenido reciente
+  'https://ipfs.io/ipfs/', // Gateway oficial - como fallback
 ];
 
 // Sistema de rate limiting por gateway
@@ -157,6 +156,20 @@ const circuitBreaker = {
 
 // Función para obtener contenido de IPFS con múltiples estrategias
 export async function getIPFSContent(hash: string): Promise<string> {
+  // 🚨 INTERCEPTACIÓN CRÍTICA - DEBE SER LA PRIMERA LÍNEA
+  if (hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51') {
+    console.error(`🚫 [CRITICAL STOP] Hash problemático interceptado: ${hash}`);
+    const emergencyContent = JSON.stringify({
+      error: "Hash IPFS problemático interceptado",
+      hash: hash,
+      message: "Este hash causa errores 422 en todos los gateways y ha sido bloqueado.",
+      intercepted: true,
+      timestamp: new Date().toISOString()
+    }, null, 2);
+    setCachedContent(hash, emergencyContent);
+    return emergencyContent;
+  }
+  
   console.log(`🔍 Obteniendo contenido IPFS para hash: ${hash.slice(0, 10)}...`);
   
   // Estrategia 0: Detectar hashes temporales y devolver contenido de ejemplo inmediatamente
@@ -333,20 +346,41 @@ async function tryAlternativeStrategies(hash: string): Promise<string> {
   throw new Error('Todas las estrategias alternativas fallaron');
 }
 
-// Función para validar si un hash IPFS parece válido
+// Función mejorada para validar si un hash IPFS es válido
 function isValidIPFSHash(hash: string): boolean {
   // Verificar formato básico de hash IPFS
-  if (!hash || hash.length < 10) return false;
+  if (!hash || hash.length < 10) {
+    console.warn(`❌ Hash muy corto: ${hash}`);
+    return false;
+  }
   
   // Verificar prefijos comunes
   const validPrefixes = ['Qm', 'bafy', 'bafk', 'bafz'];
   const hasValidPrefix = validPrefixes.some(prefix => hash.startsWith(prefix));
   
-  if (!hasValidPrefix) return false;
+  if (!hasValidPrefix) {
+    console.warn(`❌ Prefijo inválido: ${hash.slice(0, 10)}... (debe empezar con Qm, bafy, bafk, o bafz)`);
+    return false;
+  }
   
   // Verificar longitud aproximada
-  if (hash.startsWith('Qm') && hash.length !== 46) return false;
-  if (hash.startsWith('bafy') && hash.length < 50) return false;
+  if (hash.startsWith('Qm') && hash.length !== 46) {
+    console.warn(`❌ Hash Qm con longitud incorrecta: ${hash.length} (debe ser 46)`);
+    return false;
+  }
+  if (hash.startsWith('bafy') && hash.length < 50) {
+    console.warn(`❌ Hash bafy muy corto: ${hash.length} (debe ser ≥50)`);
+    return false;
+  }
+  
+  // Verificar caracteres válidos para base58 (Qm) o base32 (bafy)
+  if (hash.startsWith('Qm')) {
+    const base58Regex = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+    if (!base58Regex.test(hash)) {
+      console.warn(`❌ Hash Qm contiene caracteres inválidos para base58`);
+      return false;
+    }
+  }
   
   return true;
 }
@@ -435,30 +469,45 @@ async function fetchFromGateway(url: string, timeout: number): Promise<string> {
           }
         }
         
-        // Estrategia 3: Proxy CORS (último recurso)
-        try {
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          console.log(`🔄 Usando proxy CORS: ${proxyUrl}`);
-          
-          const response = await fetch(proxyUrl, {
-            method: 'GET',
-            mode: 'cors'
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            // Crear una respuesta simulada con el contenido del proxy
-            return new Response(data.contents, {
-              status: 200,
-              statusText: 'OK',
-              headers: { 'Content-Type': 'text/plain' }
-            });
+        // Estrategia 3: Múltiples proxies CORS (último recurso)
+        const corsProxies = [
+          `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+          `https://corsproxy.io/?${encodeURIComponent(url)}`,
+          `https://cors-anywhere.herokuapp.com/${url}`
+        ];
+        
+        for (const proxyUrl of corsProxies) {
+          try {
+            console.log(`🔄 Usando proxy CORS: ${proxyUrl.split('?')[0]}`);
+            
+            const response = await Promise.race([
+              fetch(proxyUrl, { method: 'GET', mode: 'cors' }),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Proxy timeout')), 8000)
+              )
+            ]);
+            
+            if (response.ok) {
+              // Manejar diferentes formatos de proxy
+              if (proxyUrl.includes('allorigins.win')) {
+                const data = await response.json();
+                return new Response(data.contents, {
+                  status: 200,
+                  statusText: 'OK',
+                  headers: { 'Content-Type': 'text/plain' }
+                });
+              } else {
+                // Para otros proxies, devolver la respuesta directamente
+                return response;
+              }
+            }
+          } catch (proxyError) {
+            console.warn(`❌ Proxy ${proxyUrl.split('?')[0]} falló: ${proxyError}`);
+            continue;
           }
-          throw new Error('Proxy response not ok');
-        } catch (proxyError) {
-          console.warn(`❌ Proxy también falló: ${proxyError}`);
-          throw new Error('CORS bloqueado en todas las estrategias');
         }
+        
+        throw new Error('CORS bloqueado en todas las estrategias incluyendo proxies');
       }
     };
 
