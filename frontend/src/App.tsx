@@ -6,6 +6,7 @@ import { About } from './components/About'
 import { IPFSDebugTest } from './components/IPFSDebugTest'
 import { IPFSStatusChecker } from './components/IPFSStatusChecker'
 import { CIDValidator } from './components/CIDValidator'
+import { OfflineStorageDebug } from './components/OfflineStorageDebug'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 
 function AppContent() {
@@ -32,6 +33,7 @@ function AppContent() {
             <Tab>🧪 Debug IPFS</Tab>
             <Tab>🔍 Estado IPFS</Tab>
             <Tab>✅ Validar CID</Tab>
+            <Tab>💾 Storage Debug</Tab>
           </TabList>
 
           <TabPanels>
@@ -61,6 +63,10 @@ function AppContent() {
 
             <TabPanel>
               <CIDValidator />
+            </TabPanel>
+
+            <TabPanel>
+              <OfflineStorageDebug />
             </TabPanel>
           </TabPanels>
         </Tabs>
