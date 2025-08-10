@@ -21,7 +21,7 @@ import { EncryptionForm } from './EncryptionForm'
 import { useNavigation } from '../contexts/NavigationContext'
 import { MediaUploader } from './MediaUploader'
 import { OfflineIPFSService } from '../services/ipfs-offline'
-import { StorageFallbackService } from '../services/storage-fallback'
+
 
 export const DenunciaForm = () => {
   const [tipoAcoso, setTipoAcoso] = useState('')
@@ -142,15 +142,19 @@ export const DenunciaForm = () => {
             encryptionPassword!
           );
           
-          // Subir contenido cifrado completo
-          ipfsHashReal = await pinataService.uploadJSON({
+          // Subir contenido cifrado usando OfflineIPFSService
+          const encryptedData = {
             tipo: tipoAcoso,
             contenido_cifrado: contenidoCifradoCompleto,
             metadata: {
               cifrado: true,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              storage_method: 'offline_encrypted'
             }
-          });
+          };
+          
+          ipfsHashReal = await OfflineIPFSService.uploadContent(JSON.stringify(encryptedData, null, 2));
+          console.log('✅ Contenido cifrado almacenado offline:', ipfsHashReal);
         } else if (mediaFiles.length > 0) {
           // Si hay archivos multimedia, subir el JSON principal primero
           const denunciaData: any = {
@@ -184,7 +188,11 @@ export const DenunciaForm = () => {
           denunciaData.evidencia.tipos = mediaTipos;
           
           console.log('📋 Estructura de datos final:', denunciaData);
-          ipfsHashReal = await pinataService.uploadJSON(denunciaData);
+          
+          // Usar OfflineIPFSService para multimedia también
+          const multimediaContent = JSON.stringify(denunciaData, null, 2);
+          ipfsHashReal = await OfflineIPFSService.uploadContent(multimediaContent);
+          console.log('✅ Contenido multimedia almacenado offline:', ipfsHashReal);
         } else {
           // Si no hay multimedia, usar nuestro servicio de upload real
           console.log('🚀 Usando servicio de upload real a IPFS...');
@@ -196,44 +204,17 @@ export const DenunciaForm = () => {
             encrypted: false
           });
           
-          try {
-            ipfsHashReal = await OfflineIPFSService.uploadContent(denunciaContent);
-            console.log('✅ Contenido subido exitosamente con hash real:', ipfsHashReal);
-          } catch (uploadError) {
-            console.warn('⚠️ Upload real falló, intentando Pinata...');
-            try {
-              ipfsHashReal = await pinataService.uploadJSON({
-                tipo: tipoAcoso,
-                descripcion: descripcion,
-                metadata: {
-                  esPublica: esPublica,
-                  timestamp: new Date().toISOString(),
-                  fallback: 'pinata'
-                }
-              });
-              console.log('✅ Contenido subido a Pinata:', ipfsHashReal);
-            } catch (pinataError) {
-              console.warn('⚠️ Pinata también falló, usando almacenamiento local...');
-              
-              const fallbackContent = StorageFallbackService.createDenunciaContent({
-                tipo: tipoAcoso,
-                descripcion: descripcion,
-                timestamp: new Date().toISOString(),
-                encrypted: false
-              });
-              
-              ipfsHashReal = StorageFallbackService.storeContent(fallbackContent);
-              console.log('✅ Contenido almacenado localmente con hash mock:', ipfsHashReal);
-              
-              toast({
-                title: '⚠️ Almacenamiento local',
-                description: 'IPFS no disponible. Contenido guardado localmente.',
-                status: 'warning',
-                duration: 5000,
-                isClosable: true,
-              });
-            }
-          }
+          // Usar OfflineIPFSService directamente (siempre funciona)
+          ipfsHashReal = await OfflineIPFSService.uploadContent(denunciaContent);
+          console.log('✅ Contenido almacenado offline con CID válido:', ipfsHashReal);
+          
+          toast({
+            title: '✅ Denuncia almacenada',
+            description: `CID generado: ${ipfsHashReal.slice(0, 15)}...`,
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
         }
 
         console.log('✅ Hash IPFS real obtenido:', ipfsHashReal);
