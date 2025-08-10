@@ -20,7 +20,7 @@ import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
 import { useNavigation } from '../contexts/NavigationContext'
 import { MediaUploader } from './MediaUploader'
-import { IPFSUploadService } from '../services/ipfs-upload'
+import { RealIPFSService } from '../services/ipfs-real'
 import { StorageFallbackService } from '../services/storage-fallback'
 
 export const DenunciaForm = () => {
@@ -189,15 +189,23 @@ export const DenunciaForm = () => {
           // Si no hay multimedia, usar nuestro servicio de upload real
           console.log('🚀 Usando servicio de upload real a IPFS...');
           
-          const denunciaContent = IPFSUploadService.createDenunciaContent({
-            tipo: tipoAcoso,
+          const denunciaContent = JSON.stringify({
+            version: '1.0',
+            tipo: 'denuncia_anonima',
+            categoria: tipoAcoso,
             descripcion: descripcion,
             timestamp: new Date().toISOString(),
-            encrypted: false
-          });
+            metadata: {
+              created_by: 'DenunciaChain',
+              encrypted: false,
+              network: 'Mantle',
+              contract_version: '1.0',
+              upload_method: 'real_ipfs'
+            }
+          }, null, 2);
           
           try {
-            ipfsHashReal = await IPFSUploadService.uploadContent(denunciaContent);
+            ipfsHashReal = await RealIPFSService.uploadContent(denunciaContent);
             console.log('✅ Contenido subido exitosamente con hash real:', ipfsHashReal);
           } catch (uploadError) {
             console.warn('⚠️ Upload real falló, intentando Pinata...');

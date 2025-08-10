@@ -10,7 +10,7 @@ import {
   Heading,
   Code
 } from '@chakra-ui/react'
-import { IPFSUploadService } from '../services/ipfs-upload'
+import { RealIPFSService } from '../services/ipfs-real'
 import { pinataService } from '../services/pinata'
 import { StorageFallbackService } from '../services/storage-fallback'
 
@@ -25,18 +25,18 @@ export const IPFSStatusChecker = () => {
       services: {}
     }
 
-    // Test IPFSUploadService
+    // Test RealIPFSService
     try {
-      console.log('🧪 Testing IPFSUploadService...')
+      console.log('🧪 Testing RealIPFSService...')
       const testContent = JSON.stringify({ test: 'content', timestamp: Date.now() })
-      const hash = await IPFSUploadService.uploadContent(testContent)
-      results.services.ipfsUpload = {
+      const hash = await RealIPFSService.uploadContent(testContent)
+      results.services.realIPFS = {
         status: 'SUCCESS',
         hash: hash,
         type: 'real_ipfs'
       }
     } catch (error: any) {
-      results.services.ipfsUpload = {
+      results.services.realIPFS = {
         status: 'FAILED',
         error: error.message,
         type: 'real_ipfs'

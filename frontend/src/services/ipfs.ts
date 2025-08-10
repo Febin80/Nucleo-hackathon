@@ -1,5 +1,6 @@
 import { pinataService } from './pinata';
 import { StorageFallbackService } from './storage-fallback';
+import { RealIPFSService } from './ipfs-real';
 
 export interface IPFSUploadResult {
   cid: string;
@@ -199,6 +200,16 @@ export async function getIPFSContent(hash: string): Promise<string> {
   const cachedContent = getCachedContent(hash);
   if (cachedContent) {
     return cachedContent;
+  }
+  
+  // Estrategia 1.5: Verificar si es un hash IPFS real almacenado localmente
+  if (hash.startsWith('Qm') && hash.length === 46) {
+    const localContent = RealIPFSService.retrieveContent(hash);
+    if (localContent) {
+      console.log(`✅ Contenido IPFS real encontrado localmente: ${hash.slice(0, 15)}...`);
+      setCachedContent(hash, localContent);
+      return localContent;
+    }
   }
   
   // Estrategia 2: Validar que el hash parece válido
