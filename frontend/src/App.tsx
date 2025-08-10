@@ -5,6 +5,7 @@ import { HistorialConActualizacion } from './components/HistorialConActualizacio
 import { About } from './components/About'
 import { IPFSDebugTest } from './components/IPFSDebugTest'
 import { IPFSStatusChecker } from './components/IPFSStatusChecker'
+import { CIDValidator } from './components/CIDValidator'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 
 function AppContent() {
@@ -30,6 +31,7 @@ function AppContent() {
             <Tab>📄 Whitepaper</Tab>
             <Tab>🧪 Debug IPFS</Tab>
             <Tab>🔍 Estado IPFS</Tab>
+            <Tab>✅ Validar CID</Tab>
           </TabList>
 
           <TabPanels>
@@ -55,6 +57,10 @@ function AppContent() {
 
             <TabPanel>
               <IPFSStatusChecker />
+            </TabPanel>
+
+            <TabPanel>
+              <CIDValidator />
             </TabPanel>
           </TabPanels>
         </Tabs>

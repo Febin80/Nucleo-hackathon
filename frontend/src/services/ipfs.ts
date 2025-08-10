@@ -1,6 +1,7 @@
 import { pinataService } from './pinata';
 import { StorageFallbackService } from './storage-fallback';
-import { RealIPFSService } from './ipfs-real';
+import { OfflineIPFSService } from './ipfs-offline';
+import { IPFSValidator } from '../utils/ipfs-validator';
 
 export interface IPFSUploadResult {
   cid: string;
@@ -114,6 +115,28 @@ const gatewayRateLimits = new Map<string, { count: number; resetTime: number }>(
 const RATE_LIMIT_WINDOW = 60000; // 1 minuto
 const MAX_REQUESTS_PER_WINDOW = 10;
 
+// Función para validar que el contenido es JSON válido y no HTML
+function isValidJSONContent(content: string): boolean {
+  try {
+    // Verificar que no sea HTML
+    if (content.trim().toLowerCase().startsWith('<!doctype') || 
+        content.trim().toLowerCase().startsWith('<html') ||
+        content.includes('<title>') ||
+        content.includes('<body>')) {
+      console.warn('⚠️ Contenido detectado como HTML, no JSON');
+      return false;
+    }
+    
+    // Intentar parsear como JSON
+    JSON.parse(content);
+    console.log('✅ Contenido validado como JSON válido');
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Contenido no es JSON válido:', error);
+    return false;
+  }
+}
+
 // Circuit breaker para prevenir sobrecarga del sistema
 const circuitBreaker = {
   failures: 0,
@@ -160,83 +183,90 @@ const circuitBreaker = {
 
 // Función para obtener contenido de IPFS con múltiples estrategias
 export async function getIPFSContent(hash: string): Promise<string> {
-  // 🚨 INTERCEPTACIÓN CRÍTICA - DEBE SER LA PRIMERA LÍNEA
-  if (hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51') {
-    console.error(`🚫 [CRITICAL STOP] Hash problemático interceptado: ${hash}`);
-    const emergencyContent = JSON.stringify({
-      error: "Hash IPFS problemático interceptado",
-      hash: hash,
-      message: "Este hash causa errores 422 en todos los gateways y ha sido bloqueado.",
-      intercepted: true,
+  console.log(`🔍 [IPFS] Obteniendo contenido para: ${hash.slice(0, 15)}...`);
+  
+  // Estrategia 0: Validar CID antes de procesar
+  const normalizedCID = IPFSValidator.normalizeCID(hash);
+  const cidInfo = IPFSValidator.getCIDInfo(normalizedCID);
+  
+  console.log(`📊 [CID INFO] Versión: ${cidInfo.version}, Formato: ${cidInfo.format}, Válido: ${cidInfo.isValid}`);
+  
+  if (!cidInfo.isValid) {
+    console.warn(`❌ [CID INVÁLIDO] ${hash} no es un CID válido`);
+    return JSON.stringify({
+      error: "CID IPFS inválido",
+      provided_hash: hash,
+      normalized_cid: normalizedCID,
+      cid_info: cidInfo,
+      message: "El CID proporcionado no tiene un formato válido de IPFS.",
+      valid_formats: [
+        "CIDv0: Qm... (46 caracteres, base58)",
+        "CIDv1: bafy... (≥50 caracteres, base32)"
+      ],
       timestamp: new Date().toISOString()
     }, null, 2);
-    setCachedContent(hash, emergencyContent);
-    return emergencyContent;
   }
   
-  console.log(`🔍 Obteniendo contenido IPFS para hash: ${hash.slice(0, 10)}...`);
-  
-  // Estrategia 0: Verificar si es un hash mock (almacenamiento local)
-  if (hash.startsWith('QmMock')) {
-    console.log(`🏠 Hash mock detectado, buscando en almacenamiento local: ${hash.slice(0, 15)}...`);
-    const localContent = StorageFallbackService.retrieveContent(hash);
-    if (localContent) {
-      setCachedContent(hash, localContent);
-      return localContent;
-    } else {
-      console.warn(`⚠️ Contenido mock no encontrado para hash: ${hash}`);
-      return getExampleContent(hash);
-    }
-  }
-  
-  // Estrategia 1: Detectar hashes temporales y devolver contenido de ejemplo inmediatamente
-  if (hash.startsWith('QmTemporal')) {
-    console.log(`⚠️ Hash temporal detectado: ${hash.slice(0, 15)}... - Devolviendo contenido de ejemplo`);
-    const exampleContent = getExampleContent(hash);
-    return exampleContent;
-  }
+  // Usar el CID normalizado para el resto del proceso
+  const validCID = normalizedCID;
   
   // Estrategia 1: Verificar cache primero
-  const cachedContent = getCachedContent(hash);
+  const cachedContent = getCachedContent(validCID);
   if (cachedContent) {
+    console.log(`✅ [CACHE] Contenido encontrado en cache para: ${validCID.slice(0, 15)}...`);
     return cachedContent;
   }
   
-  // Estrategia 1.5: Verificar si es un hash IPFS real almacenado localmente
-  if (hash.startsWith('Qm') && hash.length === 46) {
-    const localContent = RealIPFSService.retrieveContent(hash);
+  // Estrategia 2: Verificar si es un hash mock (almacenamiento fallback)
+  if (validCID.startsWith('QmMock')) {
+    console.log(`🏠 [MOCK] Hash mock detectado: ${validCID.slice(0, 15)}...`);
+    const localContent = StorageFallbackService.retrieveContent(validCID);
     if (localContent) {
-      console.log(`✅ Contenido IPFS real encontrado localmente: ${hash.slice(0, 15)}...`);
-      setCachedContent(hash, localContent);
+      setCachedContent(validCID, localContent);
       return localContent;
+    } else {
+      console.warn(`⚠️ Contenido mock no encontrado para: ${validCID}`);
+      return getExampleContent(validCID);
     }
   }
   
-  // Estrategia 2: Validar que el hash parece válido
-  if (!isValidIPFSHash(hash)) {
-    console.warn(`⚠️ Hash IPFS inválido detectado: ${hash.slice(0, 10)}...`);
-    // En lugar de devolver contenido de ejemplo, intentar de todos modos
-    console.log('🔄 Intentando obtener contenido a pesar del hash inválido...');
+  // Estrategia 3: Verificar hashes temporales
+  if (validCID.startsWith('QmTemporal')) {
+    console.log(`⚠️ [TEMPORAL] Hash temporal detectado: ${validCID.slice(0, 15)}...`);
+    return getExampleContent(validCID);
   }
-
-  // Estrategia 3: Verificar circuit breaker antes de intentar gateways
-  if (!circuitBreaker.canExecute()) {
-    console.warn('⚠️ Circuit breaker ABIERTO - saltando a contenido de ejemplo');
-    return getExampleContent(hash);
+  
+  // Estrategia 4: PRIORIDAD - Verificar almacenamiento offline para CIDs válidos
+  if (cidInfo.isValid) {
+    const offlineContent = OfflineIPFSService.retrieveContent(validCID);
+    if (offlineContent) {
+      console.log(`✅ [OFFLINE] Contenido IPFS encontrado offline: ${validCID.slice(0, 15)}...`);
+      setCachedContent(validCID, offlineContent);
+      return offlineContent;
+    }
   }
+  
+  // Estrategia 5: Si no hay contenido local, devolver contenido de ejemplo
+  // Esto evita intentar gateways que devuelven HTML
+  console.log(`⚠️ [FALLBACK] No se encontró contenido local para CID válido: ${validCID.slice(0, 15)}...`);
+  console.log('🚫 [SKIP] Saltando gateways IPFS para evitar contenido HTML');
+  return getExampleContent(validCID);
 
-  // Estrategia 4: Intentar con múltiples gateways (más agresivo)
+  // Estrategia 4: Intentar con múltiples gateways (con validación de contenido)
   try {
     console.log('🚀 Intentando gateways con estrategia agresiva...');
     const content = await tryGatewaysSequentially(hash);
     
-    // Registrar éxito en circuit breaker
-    circuitBreaker.recordSuccess();
-    
-    // Guardar en cache si es exitoso
-    setCachedContent(hash, content);
-    
-    return content;
+    // Validar que el contenido no sea HTML de error
+    if (isValidJSONContent(content)) {
+      console.log('✅ [GATEWAY] Contenido JSON válido obtenido de gateway');
+      circuitBreaker.recordSuccess();
+      setCachedContent(hash, content);
+      return content;
+    } else {
+      console.warn('⚠️ [GATEWAY] Contenido inválido (HTML/error) recibido de gateway');
+      throw new Error('Gateway devolvió contenido HTML en lugar de JSON');
+    }
   } catch (gatewayError) {
     console.error('❌ Gateways directos fallaron:', gatewayError);
     
@@ -420,7 +450,8 @@ async function tryAlternativeStrategies(hash: string): Promise<string> {
   throw new Error('Todas las estrategias alternativas fallaron');
 }
 
-// Función mejorada para validar si un hash IPFS es válido
+// Función mejorada para validar si un hash IPFS es válido (comentada temporalmente)
+/*
 function isValidIPFSHash(hash: string): boolean {
   // Verificar formato básico de hash IPFS
   if (!hash || hash.length < 10) {
@@ -458,6 +489,7 @@ function isValidIPFSHash(hash: string): boolean {
   
   return true;
 }
+*/
 
 // Función para verificar si un gateway está en rate limit
 function isGatewayRateLimited(gateway: string): boolean {
