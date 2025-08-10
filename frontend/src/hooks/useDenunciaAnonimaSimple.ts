@@ -92,9 +92,9 @@ export const useDenunciaAnonimaSimple = () => {
         return
       }
 
-      // Obtener denuncias más recientes primero (máximo 10)
-      const maxToGet = Math.min(totalNumber, 10)
-      console.log(`📋 Obteniendo ${maxToGet} denuncias más recientes...`)
+      // Obtener TODAS las denuncias (sin límite)
+      const maxToGet = totalNumber
+      console.log(`📋 Obteniendo TODAS las ${maxToGet} denuncias...`)
 
       const denunciasObtenidas: DenunciaSimple[] = []
 
