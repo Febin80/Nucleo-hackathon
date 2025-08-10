@@ -97,16 +97,9 @@ class PinataService {
     } catch (error) {
       console.error('Error uploading JSON to Pinata:', error);
       
-      // Usar hashes IPFS reales que sabemos que existen y funcionan
-      const realWorkingCids = [
-        'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG', // "hello world" - hash conocido que funciona
-        'QmT78zSuBmuS4z925WZfrqQ1qHaJ56DQaTfyMUF7F8ff5o', // otro hash conocido
-        'QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB'  // hash de ejemplo real
-      ];
-      
-      const randomCid = realWorkingCids[Math.floor(Math.random() * realWorkingCids.length)];
-      console.log('Using fallback JSON CID:', randomCid);
-      return randomCid;
+      // NO MÁS HASHES SIMULADOS - Si no se puede subir realmente, fallar
+      console.error('❌ No se pudo subir a Pinata - sin hashes simulados');
+      throw new Error('Pinata upload failed - no simulated hashes allowed');
     }
   }
 
