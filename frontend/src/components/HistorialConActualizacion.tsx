@@ -5,6 +5,7 @@ import { DiagnosticoRed } from './DiagnosticoRed'
 import { IPFSContentViewer } from './IPFSContentViewer'
 import { HistorialDebug } from './HistorialDebug'
 import { MediaDiagnostic } from './MediaDiagnostic'
+import { SimpleDiagnostic } from './SimpleDiagnostic'
 
 export const HistorialConActualizacion = () => {
   const { denuncias, loading, error, actualizarDenuncias } = useDenunciaAnonimaSimple()
@@ -158,6 +159,13 @@ export const HistorialConActualizacion = () => {
             🔧 Debug avanzado del historial:
           </Text>
           <HistorialDebug />
+          
+          <Divider my={6} />
+          
+          <Text fontSize="sm" color="blue.600" mb={4} textAlign="center" fontWeight="bold">
+            🔧 Diagnóstico Simple IPFS:
+          </Text>
+          <SimpleDiagnostic />
           
           <Divider my={6} />
           

@@ -2,6 +2,7 @@ import { pinataService } from './pinata';
 import { StorageFallbackService } from './storage-fallback';
 import { VercelIPFSService } from './ipfs-vercel-fix';
 import { IPFSValidator } from '../utils/ipfs-validator';
+import { simpleIPFS } from './ipfs-simple';
 
 export interface IPFSUploadResult {
   cid: string;
@@ -48,7 +49,18 @@ class IPFSService {
   }
 
   async testConnection(): Promise<boolean> {
-    return await pinataService.testConnection();
+    // Usar el servicio simple como fallback confiable
+    try {
+      const pinataTest = await pinataService.testConnection();
+      if (pinataTest) {
+        return true;
+      }
+    } catch (error) {
+      console.warn('Pinata test failed, using simple IPFS:', error);
+    }
+    
+    // Fallback al servicio simple
+    return await simpleIPFS.testConnection();
   }
 }
 
