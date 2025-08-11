@@ -20,7 +20,7 @@ import { useDenunciaAnonimaCrear } from '../hooks/useDenunciaAnonimaCrear'
 import { EncryptionForm } from './EncryptionForm'
 import { useNavigation } from '../contexts/NavigationContext'
 import { MediaUploader } from './MediaUploader'
-import { OfflineIPFSService } from '../services/ipfs-offline'
+import { VercelIPFSService } from '../services/ipfs-vercel-fix'
 
 
 export const DenunciaForm = () => {
@@ -153,7 +153,7 @@ export const DenunciaForm = () => {
             }
           };
           
-          ipfsHashReal = await OfflineIPFSService.uploadContent(JSON.stringify(encryptedData, null, 2));
+          ipfsHashReal = await VercelIPFSService.uploadContent(JSON.stringify(encryptedData, null, 2));
           console.log('✅ Contenido cifrado almacenado offline:', ipfsHashReal);
         } else if (mediaFiles.length > 0) {
           // Si hay archivos multimedia, subir el JSON principal primero
@@ -189,23 +189,23 @@ export const DenunciaForm = () => {
           
           console.log('📋 Estructura de datos final:', denunciaData);
           
-          // Usar OfflineIPFSService para multimedia también
+          // Usar VercelIPFSService para multimedia también
           const multimediaContent = JSON.stringify(denunciaData, null, 2);
-          ipfsHashReal = await OfflineIPFSService.uploadContent(multimediaContent);
+          ipfsHashReal = await VercelIPFSService.uploadContent(multimediaContent);
           console.log('✅ Contenido multimedia almacenado offline:', ipfsHashReal);
         } else {
           // Si no hay multimedia, usar nuestro servicio de upload real
           console.log('🚀 Usando servicio de upload real a IPFS...');
           
-          const denunciaContent = OfflineIPFSService.createDenunciaContent({
+          const denunciaContent = VercelIPFSService.createVercelDenunciaContent({
             tipo: tipoAcoso,
             descripcion: descripcion,
             timestamp: new Date().toISOString(),
             encrypted: false
           });
           
-          // Usar OfflineIPFSService directamente (siempre funciona)
-          ipfsHashReal = await OfflineIPFSService.uploadContent(denunciaContent);
+          // Usar VercelIPFSService (optimizado para Vercel)
+          ipfsHashReal = await VercelIPFSService.uploadContent(denunciaContent);
           console.log('✅ Contenido almacenado offline con CID válido:', ipfsHashReal);
           
           toast({

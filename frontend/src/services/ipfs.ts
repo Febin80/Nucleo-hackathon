@@ -1,6 +1,6 @@
 import { pinataService } from './pinata';
 import { StorageFallbackService } from './storage-fallback';
-import { OfflineIPFSService } from './ipfs-offline';
+import { VercelIPFSService } from './ipfs-vercel-fix';
 import { IPFSValidator } from '../utils/ipfs-validator';
 
 export interface IPFSUploadResult {
@@ -236,13 +236,13 @@ export async function getIPFSContent(hash: string): Promise<string> {
     return getExampleContent(validCID);
   }
   
-  // Estrategia 4: PRIORIDAD - Verificar almacenamiento offline para CIDs válidos
+  // Estrategia 4: PRIORIDAD - Verificar almacenamiento Vercel para CIDs válidos
   if (cidInfo.isValid) {
-    const offlineContent = OfflineIPFSService.retrieveContent(validCID);
-    if (offlineContent) {
-      console.log(`✅ [OFFLINE] Contenido IPFS encontrado offline: ${validCID.slice(0, 15)}...`);
-      setCachedContent(validCID, offlineContent);
-      return offlineContent;
+    const vercelContent = VercelIPFSService.retrieveContent(validCID);
+    if (vercelContent) {
+      console.log(`✅ [VERCEL] Contenido IPFS encontrado en Vercel: ${validCID.slice(0, 15)}...`);
+      setCachedContent(validCID, vercelContent);
+      return vercelContent;
     }
   }
   
