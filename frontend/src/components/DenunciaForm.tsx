@@ -47,26 +47,26 @@ export const DenunciaForm = () => {
     setError(null)
 
     try {
-      // Paso 1: Aceptar el contrato (conectar wallet y verificar)
+      // Paso 1: Validar datos del formulario
+      if (!tipoAcoso || !descripcion) {
+        throw new Error('Faltan datos requeridos para la denuncia')
+      }
+
+      // Paso 2: Conectar wallet y verificar red
       toast({
-        title: '🔗 Paso 1/3: Aceptando contrato',
-        description: 'Conectando wallet y verificando red blockchain...',
+        title: '🔗 Paso 1/3: Conectando wallet',
+        description: 'Verificando conexión a MetaMask...',
         status: 'info',
         duration: 3000,
         isClosable: true,
       });
-
-      // Verificar que tenemos los datos necesarios
-      if (!tipoAcoso || !descripcion) {
-        throw new Error('Faltan datos requeridos para la denuncia')
-      }
 
       // Verificar conexión del wallet
       if (!window.ethereum) {
         throw new Error('MetaMask no está instalado. Por favor instala MetaMask para continuar.')
       }
 
-      // Verificar que el usuario acepta conectar el wallet
+      // Conectar wallet
       try {
         await window.ethereum.request({ method: 'eth_requestAccounts' })
       } catch (error) {
@@ -74,26 +74,56 @@ export const DenunciaForm = () => {
       }
 
       toast({
-        title: '✅ Contrato aceptado',
-        description: 'Wallet conectado, procediendo a registrar...',
+        title: '✅ Wallet conectado',
+        description: 'Preparando transacción blockchain...',
         status: 'success',
         duration: 2000,
         isClosable: true,
       });
 
-      // Paso 2: Registrar en blockchain con hash real
+      // Paso 3: Crear transacción blockchain PRIMERO (con hash temporal)
       setSendingToContract(true)
       
       toast({
-        title: '📝 Paso 2/3: Registrando en blockchain',
-        description: 'Creando denuncia en la blockchain con hash real...',
+        title: '📝 Paso 2/3: Confirmando transacción',
+        description: 'Por favor confirma la transacción en MetaMask...',
+        status: 'info',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      // Usar hash temporal para la transacción blockchain
+      const hashTemporal = 'QmTemporal' + Date.now().toString().slice(-10) + Math.random().toString(36).slice(2, 8);
+      console.log('📝 Registrando denuncia en blockchain con hash temporal:', hashTemporal);
+      
+      const txHash = await crearDenuncia(tipoAcoso, hashTemporal, esPublica)
+
+      if (!txHash) {
+        throw new Error('Error al crear la denuncia en la blockchain')
+      }
+
+      toast({
+        title: '✅ Transacción confirmada',
+        description: 'Denuncia registrada en blockchain, subiendo contenido...',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+
+      setSendingToContract(false)
+
+      // Paso 4: AHORA sí generar el CID real y subir a IPFS
+      setUploadingToIPFS(true)
+      
+      toast({
+        title: '📤 Paso 3/3: Subiendo contenido a IPFS',
+        description: 'Generando CID y subiendo contenido descentralizado...',
         status: 'info',
         duration: 3000,
         isClosable: true,
       });
 
-      // Primero obtener hash real de IPFS (sin mostrar al usuario)
-      console.log('🔄 Obteniendo hash IPFS real para registro...');
+      console.log('🔄 Generando CID real después de confirmar transacción...');
       let ipfsHashReal: string;
 
       try {
@@ -203,15 +233,7 @@ export const DenunciaForm = () => {
           
           // Usar VercelIPFSService (optimizado para Vercel)
           ipfsHashReal = await VercelIPFSService.uploadContent(denunciaContent);
-          console.log('✅ Contenido almacenado offline con CID válido:', ipfsHashReal);
-          
-          toast({
-            title: '✅ Denuncia almacenada',
-            description: `CID generado: ${ipfsHashReal.slice(0, 15)}...`,
-            status: 'success',
-            duration: 3000,
-            isClosable: true,
-          });
+          console.log('✅ Contenido preparado para blockchain con CID:', ipfsHashReal);
         }
 
         console.log('✅ Hash IPFS real obtenido:', ipfsHashReal);
@@ -236,34 +258,7 @@ export const DenunciaForm = () => {
         console.log('📄 Usando hash simulado:', ipfsHashReal);
       }
 
-      // Registrar en blockchain con el hash real (sin usar hashes temporales)
-      console.log('📝 Registrando denuncia en blockchain con hash real:', ipfsHashReal);
-      
-      const txHash = await crearDenuncia(tipoAcoso, ipfsHashReal, esPublica)
-
-      if (!txHash) {
-        throw new Error('No se pudo registrar la denuncia en blockchain')
-      }
-
-      toast({
-        title: '✅ Registrado en blockchain',
-        description: 'Denuncia registrada con hash IPFS real',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
-
-      setSendingToContract(false)
-      setUploadingToIPFS(true)
-
-      // Paso 3: Subir a IPFS (mostrar al usuario que se está subiendo)
-      toast({
-        title: '📤 Paso 3/3: Subiendo a IPFS',
-        description: 'Subiendo contenido a IPFS con hash real...',
-        status: 'info',
-        duration: 3000,
-        isClosable: true,
-      });
+      // La transacción blockchain ya se completó arriba, ahora generar CID real
 
       // Simular subida a IPFS (reducido para mayor velocidad)
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -272,7 +267,7 @@ export const DenunciaForm = () => {
 
       toast({
         title: '✅ Contenido subido a IPFS',
-        description: `Hash IPFS: ${ipfsHashReal}`,
+        description: `CID generado: ${ipfsHashReal.slice(0, 15)}...`,
         status: 'success',
         duration: 3000,
         isClosable: true,

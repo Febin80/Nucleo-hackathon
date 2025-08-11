@@ -6,6 +6,8 @@ import { IPFSContentViewer } from './IPFSContentViewer'
 import { HistorialDebug } from './HistorialDebug'
 import { MediaDiagnostic } from './MediaDiagnostic'
 import { SimpleDiagnostic } from './SimpleDiagnostic'
+import { UltraSimpleDiagnostic } from './UltraSimpleDiagnostic'
+import { InstantDiagnostic } from './InstantDiagnostic'
 
 export const HistorialConActualizacion = () => {
   const { denuncias, loading, error, actualizarDenuncias } = useDenunciaAnonimaSimple()
@@ -159,6 +161,20 @@ export const HistorialConActualizacion = () => {
             🔧 Debug avanzado del historial:
           </Text>
           <HistorialDebug />
+          
+          <Divider my={6} />
+          
+          <Text fontSize="sm" color="green.600" mb={4} textAlign="center" fontWeight="bold">
+            ⚡ Diagnóstico INSTANTÁNEO (Garantizado 100%):
+          </Text>
+          <InstantDiagnostic />
+          
+          <Divider my={6} />
+          
+          <Text fontSize="sm" color="green.600" mb={4} textAlign="center" fontWeight="bold">
+            ⚡ Diagnóstico Ultra-Simple (Vercel Optimizado):
+          </Text>
+          <UltraSimpleDiagnostic />
           
           <Divider my={6} />
           
