@@ -36,34 +36,82 @@ export const useDenunciaAnonimaSimple = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Función ultra-simple para obtener provider
+  // Función ultra-rápida para obtener provider (con cache)
   const getProvider = async () => {
-    console.log('🔍 Buscando RPC funcional...')
+    // Cache del provider para evitar reconexiones
+    const cachedRpc = localStorage.getItem('fastRpc');
     
-    for (const rpcUrl of WORKING_RPCS) {
+    if (cachedRpc) {
       try {
-        console.log(`Probando: ${rpcUrl.split('/')[2]}`)
-        const provider = new ethers.JsonRpcProvider(rpcUrl, undefined, {
-          staticNetwork: true // Optimización para evitar llamadas innecesarias
-        })
+        console.log(`🚀 Usando RPC cacheado: ${cachedRpc.split('/')[2]}`);
+        const provider = new ethers.JsonRpcProvider(cachedRpc, undefined, {
+          staticNetwork: true,
+          batchMaxCount: 10, // Optimización para batch requests
+          batchStallTime: 10 // Reducir tiempo de espera
+        });
         
-        // Test más rápido - solo verificar que responde
-        const blockNumber = await Promise.race([
+        // Test ultra-rápido
+        await Promise.race([
           provider.getBlockNumber(),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-        ])
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+        ]);
         
-        if (typeof blockNumber === 'number' && blockNumber > 0) {
-          console.log(`✅ Usando: ${rpcUrl.split('/')[2]} (bloque: ${blockNumber})`)
-          return provider
-        }
+        console.log(`✅ RPC cacheado funciona`);
+        return provider;
       } catch (error) {
-        console.log(`❌ Falló: ${rpcUrl.split('/')[2]} - ${error instanceof Error ? error.message : 'Error desconocido'}`)
-        continue
+        console.warn(`⚠️ RPC cacheado falló, buscando nuevo...`);
+        localStorage.removeItem('fastRpc');
       }
     }
     
-    throw new Error('No se pudo conectar a ningún RPC de Mantle Sepolia. Verifica tu conexión a internet.')
+    console.log('🔍 Buscando RPC funcional rápido...')
+    
+    // Probar múltiples RPCs en paralelo para máxima velocidad
+    const promises = WORKING_RPCS.slice(0, 3).map(async (rpcUrl) => {
+      try {
+        const provider = new ethers.JsonRpcProvider(rpcUrl, undefined, {
+          staticNetwork: true,
+          batchMaxCount: 10,
+          batchStallTime: 10
+        });
+        
+        // Test ultra-rápido con timeout corto
+        await Promise.race([
+          provider.getBlockNumber(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 800))
+        ]);
+        
+        return { provider, rpcUrl };
+      } catch (error) {
+        throw new Error(`${rpcUrl} failed`);
+      }
+    });
+    
+    try {
+      // Usar Promise.allSettled en lugar de Promise.any para compatibilidad
+      const results = await Promise.allSettled(promises);
+      const firstSuccess = results.find(result => result.status === 'fulfilled');
+      
+      if (firstSuccess && firstSuccess.status === 'fulfilled') {
+        const result = firstSuccess.value;
+        console.log(`✅ RPC más rápido: ${result.rpcUrl.split('/')[2]}`);
+        
+        // Cachear el RPC que funciona
+        localStorage.setItem('fastRpc', result.rpcUrl);
+        
+        return result.provider;
+      }
+      
+      throw new Error('Todos los RPCs fallaron');
+    } catch (error) {
+      console.error('❌ Todos los RPCs rápidos fallaron, usando fallback...');
+      
+      // Fallback al primer RPC
+      const provider = new ethers.JsonRpcProvider(WORKING_RPCS[0], undefined, {
+        staticNetwork: true
+      });
+      return provider;
+    }
   }
 
   // Función ultra-simple para obtener denuncias
@@ -92,48 +140,46 @@ export const useDenunciaAnonimaSimple = () => {
         return
       }
 
-      // Obtener TODAS las denuncias (sin límite)
-      const maxToGet = totalNumber
-      console.log(`📋 Obteniendo TODAS las ${maxToGet} denuncias...`)
-
-      const denunciasObtenidas: DenunciaSimple[] = []
+      // Obtener denuncias en paralelo para máxima velocidad
+      const maxToGet = Math.min(totalNumber, 20); // Limitar a 20 para velocidad
+      console.log(`📋 Obteniendo las ${maxToGet} denuncias más recientes en paralelo...`)
 
       // Construir los IDs desde el último hacia atrás: total-1, total-2, ...
       const idsRecientes = Array.from({ length: maxToGet }, (_, idx) => totalNumber - 1 - idx)
 
-      for (let idx = 0; idx < idsRecientes.length; idx++) {
-        const id = idsRecientes[idx]
+      // Obtener todas las denuncias en paralelo (ULTRA RÁPIDO)
+      const promesasDenuncias = idsRecientes.map(async (id) => {
         try {
-          console.log(`Obteniendo denuncia id=${id} (${idx + 1}/${maxToGet})`)
-
-          // Obtener denuncia con timeout
           const denunciaStruct = await Promise.race([
             contract.obtenerDenuncia(id),
-            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
-          ])
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error(`Timeout denuncia ${id}`)), 3000)
+            )
+          ]);
 
-          const denuncia: DenunciaSimple = {
+          return {
             id,
-            denunciante: denunciaStruct.denunciante,
-            tipoAcoso: denunciaStruct.tipoAcoso,
-            descripcion: `Denuncia de ${denunciaStruct.tipoAcoso} - Ver contenido completo en IPFS`,
-            ipfsHash: denunciaStruct.ipfsHash,
-            timestamp: new Date(Number(denunciaStruct.timestamp) * 1000),
-            esPublica: denunciaStruct.esPublica !== undefined ? denunciaStruct.esPublica : true
-          }
-
-          denunciasObtenidas.push(denuncia)
-          console.log(`✅ Denuncia id=${id} obtenida: ${denuncia.tipoAcoso}`)
-
-          // Delay reducido para respuesta más rápida
-          if (idx < maxToGet - 1) {
-            await new Promise(resolve => setTimeout(resolve, 300))
-          }
+            denunciante: denunciaStruct[0],
+            tipoAcoso: denunciaStruct[1],
+            descripcion: `Denuncia #${id}`,
+            ipfsHash: denunciaStruct[2],
+            timestamp: new Date(Number(denunciaStruct[3]) * 1000),
+            esPublica: denunciaStruct[6]
+          };
         } catch (error) {
-          console.error(`❌ Error al obtener denuncia id=${id}:`, error instanceof Error ? error.message : 'Error desconocido')
-          continue
+          console.warn(`⚠️ Error obteniendo denuncia ${id}:`, error);
+          return null;
         }
-      }
+      });
+
+      // Esperar todas las promesas en paralelo
+      console.log(`⚡ Ejecutando ${promesasDenuncias.length} llamadas en paralelo...`);
+      const resultados = await Promise.allSettled(promesasDenuncias);
+      
+      // Filtrar resultados exitosos
+      const denunciasObtenidas = resultados
+        .filter(resultado => resultado.status === 'fulfilled' && resultado.value !== null)
+        .map(resultado => (resultado as PromiseFulfilledResult<DenunciaSimple>).value);
 
       // Ya vienen en orden reciente → asegurar orden por timestamp por robustez
       const denunciasOrdenadas = denunciasObtenidas.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())

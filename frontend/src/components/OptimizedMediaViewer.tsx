@@ -24,6 +24,29 @@ import {
 } from '@chakra-ui/react'
 import { IPFSMediaService, getBestMediaUrl } from '../services/ipfs-media'
 
+// Función para limpiar y corregir hashes IPFS
+const cleanIPFSHash = (hash: string): string => {
+  if (!hash) return hash;
+  
+  // Remover espacios y caracteres extraños
+  let cleaned = hash.trim();
+  
+  // Si es un hash Qm y tiene longitud incorrecta, intentar corregir
+  if (cleaned.startsWith('Qm')) {
+    // Si es muy largo, truncar a 46 caracteres
+    if (cleaned.length > 46) {
+      console.warn(`⚠️ Hash Qm muy largo (${cleaned.length}), truncando a 46: ${cleaned}`);
+      cleaned = cleaned.substring(0, 46);
+    }
+    // Si es muy corto y parece que se duplicó el final, intentar corregir
+    else if (cleaned.length < 46 && cleaned.length > 40) {
+      console.warn(`⚠️ Hash Qm muy corto (${cleaned.length}), usando como está: ${cleaned}`);
+    }
+  }
+  
+  return cleaned;
+}
+
 interface MediaItem {
   hash: string;
   type: 'image' | 'video' | 'document';
@@ -49,31 +72,62 @@ const OptimizedIPFSImage = ({ hash, alt, ...props }: { hash: string; alt: string
     let isMounted = true;
 
     const loadImage = async () => {
-      if (!IPFSMediaService.isValidMediaHash(hash)) {
-        console.error(`❌ Hash IPFS inválido: ${hash}`);
+      // Limpiar el hash primero
+      const cleanedHash = cleanIPFSHash(hash);
+      
+      // Validación mejorada del hash
+      if (!cleanedHash || cleanedHash.length < 10) {
+        console.error(`❌ Hash IPFS vacío o muy corto: ${cleanedHash}`);
+        setHasError(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Verificar formato básico
+      const validPrefixes = ['Qm', 'bafy', 'bafk', 'bafz'];
+      const hasValidPrefix = validPrefixes.some(prefix => cleanedHash.startsWith(prefix));
+      
+      if (!hasValidPrefix) {
+        console.error(`❌ Hash IPFS con prefijo inválido: ${cleanedHash}`);
+        setHasError(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Verificar longitud específica
+      if (cleanedHash.startsWith('Qm') && cleanedHash.length !== 46) {
+        console.error(`❌ Hash Qm con longitud incorrecta: ${cleanedHash.length} (debe ser 46). Hash: ${cleanedHash}`);
+        console.error(`   Hash original: ${hash}`);
+        console.error(`   Hash limpiado: ${cleanedHash}`);
         setHasError(true);
         setIsLoading(false);
         return;
       }
 
       try {
-        console.log(`🔄 OptimizedIPFSImage: Cargando imagen para hash ${hash.slice(0, 10)}...`);
+        console.log(`🔄 OptimizedIPFSImage: Cargando imagen para hash válido ${cleanedHash.slice(0, 10)}...`);
+        if (cleanedHash !== hash) {
+          console.log(`   Hash original: ${hash}`);
+          console.log(`   Hash limpiado: ${cleanedHash}`);
+        }
         
-        // Obtener la mejor URL disponible
-        const bestUrl = await getBestMediaUrl(hash);
+        // Usar URLs directas más confiables con el hash limpiado
+        const directUrls = [
+          `https://dweb.link/ipfs/${cleanedHash}`,
+          `https://cloudflare-ipfs.com/ipfs/${cleanedHash}`,
+          `https://ipfs.io/ipfs/${cleanedHash}`
+        ];
         
         if (isMounted) {
-          console.log(`✅ OptimizedIPFSImage: URL obtenida: ${bestUrl.split('/')[2]}`);
-          setImageUrl(bestUrl);
+          console.log(`✅ OptimizedIPFSImage: Usando URL directa: ${directUrls[0].split('/')[2]}`);
+          setImageUrl(directUrls[0]);
         }
       } catch (error) {
-        console.error(`❌ OptimizedIPFSImage: Error obteniendo URL para ${hash}:`, error);
+        console.error(`❌ OptimizedIPFSImage: Error configurando URL para ${cleanedHash}:`, error);
         
         if (isMounted) {
-          // Fallback a URL directa
-          const fallbackUrl = `https://dweb.link/ipfs/${hash}`;
-          console.log(`🔄 OptimizedIPFSImage: Usando fallback: ${fallbackUrl}`);
-          setImageUrl(fallbackUrl);
+          setHasError(true);
+          setIsLoading(false);
         }
       }
     };
@@ -92,56 +146,96 @@ const OptimizedIPFSImage = ({ hash, alt, ...props }: { hash: string; alt: string
   };
 
   const handleImageError = () => {
-    console.warn(`❌ OptimizedIPFSImage: Error cargando imagen para ${hash.slice(0, 10)}...`);
+    const currentUrl = imageUrl;
+    const gatewayName = currentUrl ? currentUrl.split('/')[2] : 'unknown';
+    
+    console.warn(`❌ OptimizedIPFSImage: Error cargando imagen para ${hash.slice(0, 10)}... desde ${gatewayName}`);
+    console.warn(`   Hash completo: ${hash}`);
+    console.warn(`   URL que falló: ${currentUrl}`);
     
     if (retryCount < 2) {
-      console.log(`🔄 OptimizedIPFSImage: Reintentando... (${retryCount + 1}/2)`);
+      console.log(`🔄 OptimizedIPFSImage: Reintentando con gateway alternativo... (${retryCount + 1}/2)`);
+      
+      // Probar gateways alternativos
+      const alternativeUrls = [
+        `https://cloudflare-ipfs.com/ipfs/${hash}`,
+        `https://ipfs.io/ipfs/${hash}`,
+        `https://gateway.pinata.cloud/ipfs/${hash}`
+      ];
+      
+      const nextUrl = alternativeUrls[retryCount];
+      if (nextUrl) {
+        console.log(`🔄 Probando gateway alternativo: ${nextUrl.split('/')[2]}`);
+        setImageUrl(nextUrl);
+      }
+      
       setRetryCount(prev => prev + 1);
       setIsLoading(true);
     } else {
-      console.error(`❌ OptimizedIPFSImage: Todos los reintentos fallaron para ${hash}`);
+      console.error(`❌ OptimizedIPFSImage: Todos los reintentos fallaron para hash: ${hash}`);
+      console.error(`   Posibles causas:`);
+      console.error(`   - Hash inválido o corrupto`);
+      console.error(`   - Contenido no existe en IPFS`);
+      console.error(`   - Problemas de conectividad con gateways`);
+      
       setHasError(true);
       setIsLoading(false);
       
-      toast({
-        title: 'Imagen no disponible',
-        description: `No se pudo cargar la imagen desde IPFS`,
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
+      // Solo mostrar toast si es un error inesperado (no para hashes claramente inválidos)
+      if (hash.length === 46 && hash.startsWith('Qm')) {
+        toast({
+          title: 'Imagen no disponible',
+          description: `Hash IPFS no accesible: ${hash.slice(0, 10)}...`,
+          status: 'warning',
+          duration: 2000,
+          isClosable: true,
+        });
+      }
     }
   };
 
   if (hasError) {
+    // Determinar el tipo de error
+    const isInvalidLength = hash.startsWith('Qm') && hash.length !== 46;
+    const isInvalidPrefix = !['Qm', 'bafy', 'bafk', 'bafz'].some(prefix => hash.startsWith(prefix));
+    
     return (
       <Box
         {...props}
-        bg="gray.100"
+        bg={isInvalidLength || isInvalidPrefix ? "red.50" : "gray.100"}
         display="flex"
         alignItems="center"
         justifyContent="center"
         flexDirection="column"
         border="2px dashed"
-        borderColor="gray.300"
+        borderColor={isInvalidLength || isInvalidPrefix ? "red.300" : "gray.300"}
         cursor="pointer"
-        _hover={{ bg: 'gray.200' }}
+        _hover={{ bg: isInvalidLength || isInvalidPrefix ? "red.100" : "gray.200" }}
         onClick={() => {
-          if (imageUrl) {
+          if (imageUrl && !isInvalidLength && !isInvalidPrefix) {
             window.open(imageUrl, '_blank');
           }
         }}
       >
-        <Text fontSize="24px">🖼️</Text>
-        <Text fontSize="xs" color="gray.600" textAlign="center" px={2}>
-          Imagen no disponible
+        <Text fontSize="24px">{isInvalidLength || isInvalidPrefix ? '⚠️' : '🖼️'}</Text>
+        <Text fontSize="xs" color={isInvalidLength || isInvalidPrefix ? "red.600" : "gray.600"} textAlign="center" px={2}>
+          {isInvalidLength ? 'Hash inválido (longitud)' : 
+           isInvalidPrefix ? 'Hash inválido (formato)' : 
+           'Imagen no disponible'}
         </Text>
-        <Text fontSize="xs" color="gray.500" textAlign="center" px={2}>
-          {hash.slice(0, 8)}...
+        <Text fontSize="xs" color="gray.500" textAlign="center" px={2} fontFamily="mono">
+          {hash.slice(0, 8)}...{hash.slice(-4)}
         </Text>
-        <Text fontSize="2xs" color="blue.500" textAlign="center" px={2} mt={1}>
-          Clic para intentar abrir
-        </Text>
+        {isInvalidLength && (
+          <Text fontSize="2xs" color="red.500" textAlign="center" px={2} mt={1}>
+            Longitud: {hash.length} (debe ser 46)
+          </Text>
+        )}
+        {!isInvalidLength && !isInvalidPrefix && (
+          <Text fontSize="2xs" color="blue.500" textAlign="center" px={2} mt={1}>
+            Clic para intentar abrir
+          </Text>
+        )}
       </Box>
     );
   }

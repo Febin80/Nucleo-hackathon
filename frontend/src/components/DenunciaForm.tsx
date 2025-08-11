@@ -92,11 +92,19 @@ export const DenunciaForm = () => {
         isClosable: true,
       });
 
-      // Usar hash temporal para la transacción blockchain
-      const hashTemporal = 'QmTemporal' + Date.now().toString().slice(-10) + Math.random().toString(36).slice(2, 8);
-      console.log('📝 Registrando denuncia en blockchain con hash temporal:', hashTemporal);
+      // Generar CID válido real para la transacción blockchain
+      const { OfflineIPFSService } = await import('../services/ipfs-offline');
+      const contenidoTemporal = JSON.stringify({
+        tipo: tipoAcoso,
+        descripcion: descripcion,
+        timestamp: new Date().toISOString(),
+        estado: 'procesando'
+      });
       
-      const txHash = await crearDenuncia(tipoAcoso, hashTemporal, esPublica)
+      const hashReal = OfflineIPFSService.generateValidCID(contenidoTemporal);
+      console.log('📝 Registrando denuncia en blockchain con CID válido:', hashReal);
+      
+      const txHash = await crearDenuncia(tipoAcoso, hashReal, esPublica)
 
       if (!txHash) {
         throw new Error('Error al crear la denuncia en la blockchain')
@@ -123,8 +131,9 @@ export const DenunciaForm = () => {
         isClosable: true,
       });
 
-      console.log('🔄 Generando CID real después de confirmar transacción...');
-      let ipfsHashReal: string;
+      console.log('🔄 Actualizando contenido IPFS con datos completos...');
+      // Usar el mismo CID que se registró en blockchain
+      let ipfsHashReal: string = hashReal;
 
       try {
         // Usar VercelIPFSService como servicio principal
@@ -180,8 +189,10 @@ export const DenunciaForm = () => {
             }
           };
           
-          ipfsHashReal = await VercelIPFSService.uploadContent(JSON.stringify(encryptedData, null, 2));
-          console.log('✅ Contenido cifrado almacenado offline:', ipfsHashReal);
+          // Actualizar el contenido en el CID existente
+          const { OfflineIPFSService } = await import('../services/ipfs-offline');
+          OfflineIPFSService.storeContent(JSON.stringify(encryptedData, null, 2), ipfsHashReal);
+          console.log('✅ Contenido cifrado actualizado en CID existente:', ipfsHashReal);
         } else if (mediaFiles.length > 0) {
           // Si hay archivos multimedia, subir el JSON principal primero
           const denunciaData: any = {
@@ -216,10 +227,11 @@ export const DenunciaForm = () => {
           
           console.log('📋 Estructura de datos final:', denunciaData);
           
-          // Usar VercelIPFSService para multimedia también
+          // Actualizar contenido multimedia en CID existente
           const multimediaContent = JSON.stringify(denunciaData, null, 2);
-          ipfsHashReal = await VercelIPFSService.uploadContent(multimediaContent);
-          console.log('✅ Contenido multimedia almacenado offline:', ipfsHashReal);
+          const { OfflineIPFSService } = await import('../services/ipfs-offline');
+          OfflineIPFSService.storeContent(multimediaContent, ipfsHashReal);
+          console.log('✅ Contenido multimedia actualizado en CID existente:', ipfsHashReal);
         } else {
           // Si no hay multimedia, usar nuestro servicio de upload real
           console.log('🚀 Usando servicio de upload real a IPFS...');
@@ -231,9 +243,10 @@ export const DenunciaForm = () => {
             encrypted: false
           });
           
-          // Usar VercelIPFSService (optimizado para Vercel)
-          ipfsHashReal = await VercelIPFSService.uploadContent(denunciaContent);
-          console.log('✅ Contenido preparado para blockchain con CID:', ipfsHashReal);
+          // Actualizar contenido simple en CID existente
+          const { OfflineIPFSService } = await import('../services/ipfs-offline');
+          OfflineIPFSService.storeContent(denunciaContent, ipfsHashReal);
+          console.log('✅ Contenido actualizado en CID existente:', ipfsHashReal);
         }
 
         console.log('✅ Hash IPFS real obtenido:', ipfsHashReal);

@@ -49,8 +49,8 @@ export const HistorialConActualizacion = () => {
     // Verificar al montar el componente
     checkForNewDenuncia()
 
-    // Verificar cada 2 segundos por si el usuario cambia de pestaña
-    const interval = setInterval(checkForNewDenuncia, 2000)
+    // Verificar cada segundo para respuesta más rápida
+    const interval = setInterval(checkForNewDenuncia, 1000)
     
     return () => clearInterval(interval)
   }, [])
@@ -60,10 +60,10 @@ export const HistorialConActualizacion = () => {
     if (!autoRefresh) return
 
     const interval = setInterval(async () => {
-      console.log('🔄 Auto-refresh rápido activado - actualizando denuncias...')
+      console.log('🔄 Auto-refresh ultra-rápido activado - actualizando denuncias...')
       await actualizarDenuncias()
       setLastRefresh(new Date())
-    }, 15000) // 15 segundos para balance entre actualización y rendimiento
+    }, 5000) // 5 segundos para actualización más rápida
 
     return () => clearInterval(interval)
   }, [autoRefresh, actualizarDenuncias])
@@ -78,10 +78,13 @@ export const HistorialConActualizacion = () => {
   if (loading) {
     return (
       <Box textAlign="center" py={8}>
-        <Spinner size="xl" color="blue.500" />
-        <Text mt={4} fontSize="lg">Cargando denuncias sin MetaMask...</Text>
-        <Text fontSize="sm" color="gray.600">
-          Conectando a blockchain pública...
+        <Spinner size="xl" color="blue.500" speed="0.8s" />
+        <Text mt={4} fontSize="lg" fontWeight="bold">⚡ Carga Ultra-Rápida</Text>
+        <Text fontSize="sm" color="blue.600" mt={2}>
+          🚀 Conectando a blockchain con RPC optimizado...
+        </Text>
+        <Text fontSize="xs" color="gray.500" mt={1}>
+          💡 Cargando denuncias en paralelo para máxima velocidad
         </Text>
       </Box>
     )
@@ -237,7 +240,7 @@ export const HistorialConActualizacion = () => {
             
             {autoRefresh && (
               <Badge colorScheme="green" fontSize="xs" variant="solid">
-                🔄 Auto-refresh (cada 15s)
+                ⚡ Auto-refresh ultra-rápido (cada 5s)
               </Badge>
             )}
           </VStack>
