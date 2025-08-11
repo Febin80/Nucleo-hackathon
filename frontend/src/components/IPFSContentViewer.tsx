@@ -26,7 +26,8 @@ import {
 } from '@chakra-ui/react'
 import { getIPFSContent, getIPFSGatewayURL } from '../services/ipfs'
 import { EncryptionService } from '../services/encryption'
-import { MediaViewer } from './MediaViewer'
+import { VercelMediaViewer } from './VercelMediaViewer'
+import { OptimizedMediaViewer } from './OptimizedMediaViewer'
 
 interface IPFSContentViewerProps {
   hash: string
@@ -378,13 +379,26 @@ export const IPFSContentViewer = ({
                     try {
                       const jsonContent = JSON.parse(content);
                       if (jsonContent.evidencia && jsonContent.evidencia.archivos && jsonContent.evidencia.archivos.length > 0) {
+                        // Detectar si es contenido de Vercel (version 2.0 o storage_method vercel)
+                        const isVercelContent = jsonContent.version === '2.0' || 
+                                              jsonContent.storage_info?.method?.includes('vercel') ||
+                                              jsonContent.metadata?.vercel_optimized;
+                        
                         return (
                           <Box w="100%" mb={4}>
-                            <MediaViewer
-                              mediaHashes={jsonContent.evidencia.archivos}
-                              mediaTypes={jsonContent.evidencia.tipos || []}
-                              title="Evidencia de la Denuncia"
-                            />
+                            {isVercelContent ? (
+                              <VercelMediaViewer
+                                mediaHashes={jsonContent.evidencia.archivos}
+                                mediaTypes={jsonContent.evidencia.tipos || []}
+                                title="Evidencia de la Denuncia"
+                              />
+                            ) : (
+                              <OptimizedMediaViewer
+                                mediaHashes={jsonContent.evidencia.archivos}
+                                mediaTypes={jsonContent.evidencia.tipos || []}
+                                title="Evidencia de la Denuncia"
+                              />
+                            )}
                           </Box>
                         );
                       }

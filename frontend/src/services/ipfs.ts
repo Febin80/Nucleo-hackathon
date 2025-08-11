@@ -100,14 +100,14 @@ function setCachedContent(hash: string, content: string): void {
   }
 }
 
-// Lista de gateways IPFS optimizada para producción con mejor CORS
+// Lista de gateways IPFS optimizada para Vercel con mejor CORS y velocidad
 const IPFS_GATEWAYS = [
-  'https://gateway.pinata.cloud/ipfs/', // Pinata - mejor para contenido reciente
-  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - mejor CORS
-  'https://dweb.link/ipfs/', // Protocol Labs - confiable
-  'https://4everland.io/ipfs/', // 4everland - buen CORS
+  'https://dweb.link/ipfs/', // Protocol Labs - mejor CORS para Vercel
+  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - muy confiable
+  'https://gateway.pinata.cloud/ipfs/', // Pinata - bueno para contenido reciente
+  'https://4everland.io/ipfs/', // 4everland - optimizado para producción
   'https://nftstorage.link/ipfs/', // NFT.Storage - confiable
-  'https://ipfs.io/ipfs/', // Gateway oficial - como fallback
+  'https://ipfs.io/ipfs/', // Gateway oficial
 ];
 
 // Sistema de rate limiting por gateway
@@ -246,22 +246,17 @@ export async function getIPFSContent(hash: string): Promise<string> {
     }
   }
   
-  // Estrategia 5: Si no hay contenido local, devolver contenido de ejemplo
-  // Esto evita intentar gateways que devuelven HTML
-  console.log(`⚠️ [FALLBACK] No se encontró contenido local para CID válido: ${validCID.slice(0, 15)}...`);
-  console.log('🚫 [SKIP] Saltando gateways IPFS para evitar contenido HTML');
-  return getExampleContent(validCID);
-
   // Estrategia 4: Intentar con múltiples gateways (con validación de contenido)
+  console.log(`⚠️ [FALLBACK] No se encontró contenido local para CID válido: ${validCID.slice(0, 15)}...`);
+  console.log('🌐 Intentando gateways IPFS con estrategia agresiva...');
   try {
-    console.log('🚀 Intentando gateways con estrategia agresiva...');
-    const content = await tryGatewaysSequentially(hash);
+    const content = await tryGatewaysSequentially(validCID);
     
     // Validar que el contenido no sea HTML de error
     if (isValidJSONContent(content)) {
       console.log('✅ [GATEWAY] Contenido JSON válido obtenido de gateway');
       circuitBreaker.recordSuccess();
-      setCachedContent(hash, content);
+      setCachedContent(validCID, content);
       return content;
     } else {
       console.warn('⚠️ [GATEWAY] Contenido inválido (HTML/error) recibido de gateway');
@@ -273,13 +268,13 @@ export async function getIPFSContent(hash: string): Promise<string> {
     // Estrategia 5: Intentar con servicios proxy/alternativos
     try {
       console.log('🔄 Intentando estrategias alternativas...');
-      const content = await tryAlternativeStrategies(hash);
+      const content = await tryAlternativeStrategies(validCID);
       
       // Registrar éxito parcial en circuit breaker
       circuitBreaker.recordSuccess();
       
       // Guardar en cache si es exitoso
-      setCachedContent(hash, content);
+      setCachedContent(validCID, content);
       
       return content;
     } catch (alternativeError) {
@@ -288,9 +283,9 @@ export async function getIPFSContent(hash: string): Promise<string> {
       // Estrategia 6: Último intento con gateways individuales y timeouts largos
       try {
         console.log('🔄 Último intento con timeouts extendidos...');
-        const content = await tryLastResortStrategy(hash);
+        const content = await tryLastResortStrategy(validCID);
         
-        setCachedContent(hash, content);
+        setCachedContent(validCID, content);
         return content;
       } catch (lastResortError) {
         console.error('❌ Todos los intentos fallaron:', lastResortError);
@@ -300,7 +295,7 @@ export async function getIPFSContent(hash: string): Promise<string> {
         
         // Solo como último recurso, devolver contenido de ejemplo
         console.log('📄 Usando contenido de ejemplo como último recurso');
-        const exampleContent = getExampleContent(hash);
+        const exampleContent = getExampleContent(validCID);
         
         // No cachear contenido de ejemplo
         return exampleContent;

@@ -35,48 +35,57 @@ interface MediaViewerProps {
   maxWidth?: string;
 }
 
-// Componente de imagen con fallback a múltiples gateways
+// Componente de imagen optimizado con fallback inteligente
 const IPFSImage = ({ hash, alt, ...props }: { hash: string; alt: string; [key: string]: any }) => {
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const gateways = getGatewayUrls(hash);
+  const [gateways, setGateways] = useState<string[]>([]);
+
+  // Inicializar gateways cuando cambia el hash
+  useEffect(() => {
+    const urls = getGatewayUrls(hash);
+    setGateways(urls);
+    setCurrentGatewayIndex(0);
+    setIsLoading(true);
+    setHasError(false);
+    
+    console.log(`🔄 IPFSImage: Inicializando para hash ${hash.slice(0, 10)}...${hash.slice(-6)}`);
+    console.log(`   Gateways disponibles: ${urls.length}`);
+    console.log(`   Primer gateway: ${urls[0]?.split('/')[2] || 'N/A'}`);
+  }, [hash]);
 
   const handleImageError = () => {
-    console.warn(`❌ IPFSImage Error: Gateway ${currentGatewayIndex} falló para hash ${hash.slice(0, 10)}...`);
-    console.warn(`   URL que falló: ${gateways[currentGatewayIndex]}`);
+    const currentUrl = gateways[currentGatewayIndex];
+    const gatewayName = currentUrl?.split('/')[2] || 'unknown';
+    
+    console.warn(`❌ IPFSImage Error: Gateway ${gatewayName} falló para hash ${hash.slice(0, 10)}...`);
     
     if (currentGatewayIndex < gateways.length - 1) {
-      const nextGateway = gateways[currentGatewayIndex + 1];
+      const nextIndex = currentGatewayIndex + 1;
+      const nextGateway = gateways[nextIndex]?.split('/')[2] || 'unknown';
       console.log(`🔄 IPFSImage: Intentando siguiente gateway: ${nextGateway}`);
-      setCurrentGatewayIndex(prev => prev + 1);
+      setCurrentGatewayIndex(nextIndex);
     } else {
       console.error(`❌ IPFSImage: Todos los gateways fallaron para hash: ${hash}`);
-      console.error(`   Gateways probados:`, gateways);
+      console.error(`   Gateways probados:`, gateways.map(url => url.split('/')[2]));
       setHasError(true);
       setIsLoading(false);
     }
   };
 
   const handleImageLoad = () => {
+    const currentUrl = gateways[currentGatewayIndex];
+    const gatewayName = currentUrl?.split('/')[2] || 'unknown';
+    
     console.log(`✅ IPFSImage: Imagen cargada exitosamente`);
     console.log(`   Hash: ${hash.slice(0, 10)}...${hash.slice(-6)}`);
-    console.log(`   Gateway: ${gateways[currentGatewayIndex]}`);
+    console.log(`   Gateway: ${gatewayName}`);
     setIsLoading(false);
     setHasError(false);
   };
 
-  // Reset cuando cambia el hash
-  useEffect(() => {
-    console.log(`🔄 IPFSImage: Inicializando para hash ${hash.slice(0, 10)}...${hash.slice(-6)}`);
-    console.log(`   Gateways disponibles: ${gateways.length}`);
-    console.log(`   Primer gateway: ${gateways[0]}`);
-    setCurrentGatewayIndex(0);
-    setIsLoading(true);
-    setHasError(false);
-  }, [hash]);
-
-  if (hasError) {
+  if (hasError || gateways.length === 0) {
     return (
       <Box
         {...props}
@@ -108,6 +117,9 @@ const IPFSImage = ({ hash, alt, ...props }: { hash: string; alt: string; [key: s
           left="50%"
           transform="translate(-50%, -50%)"
           zIndex={2}
+          bg="white"
+          borderRadius="full"
+          p={2}
         >
           <Spinner size="sm" color="blue.500" />
         </Box>
@@ -117,22 +129,19 @@ const IPFSImage = ({ hash, alt, ...props }: { hash: string; alt: string; [key: s
         alt={alt}
         onLoad={handleImageLoad}
         onError={handleImageError}
-        opacity={isLoading ? 0.5 : 1}
+        opacity={isLoading ? 0.3 : 1}
+        transition="opacity 0.3s"
         {...props}
       />
     </Box>
   );
 };
 
-// Función auxiliar para obtener URLs de gateways (necesaria para IPFSImage)
+import { getOptimizedMediaUrls } from '../services/ipfs-media'
+
+// Función auxiliar para obtener URLs de gateways optimizadas
 function getGatewayUrls(hash: string) {
-  return [
-    `https://dweb.link/ipfs/${hash}`, // Gateway más confiable para CORS
-    `https://cloudflare-ipfs.com/ipfs/${hash}`, // Cloudflare es muy confiable
-    `https://ipfs.io/ipfs/${hash}`, // Gateway oficial
-    `https://gateway.ipfs.io/ipfs/${hash}`, // Gateway oficial alternativo
-    `https://gateway.pinata.cloud/ipfs/${hash}`, // Pinata (puede tener rate limits)
-  ];
+  return getOptimizedMediaUrls(hash);
 }
 
 export const MediaViewer = ({ 

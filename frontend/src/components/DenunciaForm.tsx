@@ -97,10 +97,7 @@ export const DenunciaForm = () => {
       let ipfsHashReal: string;
 
       try {
-        // Usar Pinata como servicio principal
-        const { 
-          pinataService 
-        } = await import('../services/pinata');
+        // Usar VercelIPFSService como servicio principal
         
         if (_encryptedContent) {
           // Si está cifrado, primero subir archivos multimedia si existen
@@ -111,7 +108,7 @@ export const DenunciaForm = () => {
             console.log('📤 Subiendo archivos multimedia antes del cifrado...');
             for (const file of mediaFiles) {
               console.log(`📤 Subiendo archivo: ${file.name} (${file.type})`);
-              const mediaHash = await pinataService.uploadFile(file);
+              const mediaHash = await VercelIPFSService.uploadFile(file);
               console.log(`✅ Archivo subido con CID: ${mediaHash}`);
               
               mediaHashes.push(mediaHash);
@@ -177,7 +174,7 @@ export const DenunciaForm = () => {
           const mediaTipos = [];
           for (const file of mediaFiles) {
             console.log(`📤 Subiendo archivo: ${file.name} (${file.type})`);
-            const mediaHash = await pinataService.uploadFile(file);
+            const mediaHash = await VercelIPFSService.uploadFile(file);
             console.log(`✅ Archivo subido con CID: ${mediaHash}`);
             
             mediaHashes.push(mediaHash);

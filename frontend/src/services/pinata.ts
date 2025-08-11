@@ -124,14 +124,16 @@ class PinataService {
     return `https://gateway.pinata.cloud/ipfs/${cid}`;
   }
 
-  // Método para obtener múltiples URLs de gateway como fallback
+  // Método para obtener múltiples URLs de gateway optimizado para Vercel
   getGatewayUrls(cid: string): string[] {
     return [
-      `https://gateway.pinata.cloud/ipfs/${cid}`, // Gateway público de Pinata (funciona sin auth)
-      `https://ipfs.io/ipfs/${cid}`,
-      `${PINATA_GATEWAY}/ipfs/${cid}`, // Gateway personalizado (requiere auth)
-      `https://cloudflare-ipfs.com/ipfs/${cid}`,
-      `https://dweb.link/ipfs/${cid}`
+      `https://dweb.link/ipfs/${cid}`, // Mejor CORS para Vercel
+      `https://cloudflare-ipfs.com/ipfs/${cid}`, // Muy confiable y rápido
+      `https://gateway.pinata.cloud/ipfs/${cid}`, // Gateway público de Pinata
+      `https://4everland.io/ipfs/${cid}`, // Bueno para multimedia
+      `https://nftstorage.link/ipfs/${cid}`, // Confiable para archivos
+      `https://ipfs.io/ipfs/${cid}`, // Gateway oficial como fallback
+      `${PINATA_GATEWAY}/ipfs/${cid}`, // Gateway personalizado (último recurso)
     ];
   }
 }

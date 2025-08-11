@@ -246,4 +246,77 @@ export class VercelIPFSService {
       return false
     }
   }
+  
+  // Subir archivo multimedia (imagen, video, etc.)
+  static async uploadFile(file: File): Promise<string> {
+    try {
+      console.log(`🖼️ [VERCEL] Subiendo archivo multimedia: ${file.name} (${file.type})`)
+      
+      // Convertir archivo a base64 para almacenamiento
+      const base64Content = await this.fileToBase64(file)
+      
+      // Crear contenido estructurado para el archivo
+      const fileContent = {
+        version: '2.0',
+        type: 'multimedia_file',
+        file_info: {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          last_modified: file.lastModified
+        },
+        content: base64Content,
+        storage_info: {
+          method: 'vercel_base64',
+          platform: 'vercel'
+        },
+        timestamp: new Date().toISOString()
+      }
+      
+      const fileContentString = JSON.stringify(fileContent, null, 2)
+      const cid = await this.uploadContent(fileContentString)
+      
+      console.log(`✅ [VERCEL] Archivo multimedia subido: ${cid}`)
+      return cid
+    } catch (error) {
+      console.error('❌ [VERCEL] Error subiendo archivo:', error)
+      throw new Error(`No se pudo subir el archivo: ${file.name}`)
+    }
+  }
+  
+  // Convertir archivo a base64
+  static fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result)
+        } else {
+          reject(new Error('Error convirtiendo archivo a base64'))
+        }
+      }
+      reader.onerror = () => reject(new Error('Error leyendo archivo'))
+      reader.readAsDataURL(file)
+    })
+  }
+  
+  // Recuperar archivo multimedia como URL blob
+  static getFileAsBlob(cid: string): string | null {
+    try {
+      const content = this.retrieveContent(cid)
+      if (!content) return null
+      
+      const fileData = JSON.parse(content)
+      if (fileData.type === 'multimedia_file' && fileData.content) {
+        // El contenido ya está en formato data URL (data:image/jpeg;base64,...)
+        console.log(`✅ [VERCEL] Archivo recuperado como blob: ${cid.slice(0, 15)}...`)
+        return fileData.content
+      }
+      
+      return null
+    } catch (error) {
+      console.error('❌ Error recuperando archivo como blob:', error)
+      return null
+    }
+  }
 }
