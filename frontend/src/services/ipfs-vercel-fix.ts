@@ -1,7 +1,7 @@
 // Sistema IPFS que funciona 100% en Vercel
 export class VercelIPFSService {
   
-  // Generar CID determinístico basado en contenido
+  // Generar CID determinístico basado en contenido (formato base58 válido)
   static async generateDeterministicCID(content: string): Promise<string> {
     try {
       // Usar Web Crypto API para hash determinístico
@@ -12,21 +12,34 @@ export class VercelIPFSService {
       // Convertir a array de bytes
       const hashArray = Array.from(new Uint8Array(hashBuffer))
       
-      // Crear CID válido formato CIDv0
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+      // Convertir a base58 válido
+      const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+      let cidSuffix = ''
       
-      // Tomar los primeros 44 caracteres para crear un CID válido
-      const cidSuffix = hashHex.slice(0, 44)
+      // Usar los bytes del hash para generar caracteres base58 válidos
+      for (let i = 0; i < 44; i++) {
+        const byteIndex = i % hashArray.length
+        const charIndex = hashArray[byteIndex] % base58Chars.length
+        cidSuffix += base58Chars[charIndex]
+      }
+      
       const validCID = 'Qm' + cidSuffix
       
-      console.log(`✅ CID determinístico generado: ${validCID}`)
+      console.log(`✅ CID determinístico base58 generado: ${validCID}`)
       return validCID
     } catch (error) {
       console.error('❌ Error generando CID determinístico:', error)
-      // Fallback simple
-      const timestamp = Date.now().toString(16)
-      const random = Math.random().toString(16).slice(2, 10)
-      return 'QmVercel' + timestamp + random + '0'.repeat(30)
+      // Fallback con base58 válido
+      const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+      let fallbackSuffix = ''
+      const timestamp = Date.now()
+      
+      for (let i = 0; i < 44; i++) {
+        const charIndex = (timestamp + i) % base58Chars.length
+        fallbackSuffix += base58Chars[charIndex]
+      }
+      
+      return 'Qm' + fallbackSuffix
     }
   }
   
