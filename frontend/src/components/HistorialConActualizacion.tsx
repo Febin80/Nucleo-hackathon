@@ -18,7 +18,16 @@ export const HistorialConActualizacion = () => {
     denunciasCount: denuncias.length, 
     loading, 
     error,
-    autoRefresh
+    autoRefresh,
+    timestamp: new Date().toISOString()
+  })
+
+  // Debug temporal para ver el estado
+  console.log('📊 Estado detallado del historial:', {
+    loading,
+    error,
+    denunciasLength: denuncias.length,
+    denuncias: denuncias.map(d => ({ id: d.id, tipo: d.tipoAcoso, hash: d.ipfsHash.slice(0, 10) }))
   })
 
   // Detectar cuando se crea una nueva denuncia y activar auto-refresh automáticamente
@@ -86,6 +95,17 @@ export const HistorialConActualizacion = () => {
         <Text fontSize="xs" color="gray.500" mt={1}>
           💡 Cargando denuncias en paralelo para máxima velocidad
         </Text>
+        
+        {/* Debug temporal */}
+        <Button 
+          mt={4} 
+          size="sm" 
+          colorScheme="red" 
+          variant="outline"
+          onClick={handleManualRefresh}
+        >
+          🔧 Debug: Forzar Carga
+        </Button>
       </Box>
     )
   }
@@ -125,6 +145,15 @@ export const HistorialConActualizacion = () => {
           <Text color="gray.600" mb={4}>
             El contrato no tiene denuncias registradas o hubo un problema al cargarlas.
           </Text>
+          
+          {/* Debug info */}
+          <Box p={3} bg="yellow.50" borderRadius="md" border="1px solid" borderColor="yellow.200" mb={4}>
+            <Text fontSize="sm" fontWeight="bold" color="yellow.800">🔧 Info de Debug:</Text>
+            <Text fontSize="xs" color="yellow.700">Loading: {loading ? 'Sí' : 'No'}</Text>
+            <Text fontSize="xs" color="yellow.700">Error: {error || 'Ninguno'}</Text>
+            <Text fontSize="xs" color="yellow.700">Denuncias: {denuncias.length}</Text>
+            <Text fontSize="xs" color="yellow.700">Timestamp: {new Date().toLocaleTimeString()}</Text>
+          </Box>
           
           <VStack spacing={3}>
             <Button onClick={handleManualRefresh} colorScheme="blue">

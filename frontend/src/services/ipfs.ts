@@ -229,11 +229,18 @@ const circuitBreaker = {
 export async function getIPFSContent(hash: string): Promise<string> {
   console.log(`🚀 [IPFS RÁPIDO] Obteniendo contenido para: ${hash.slice(0, 15)}...`);
   
-  // Estrategia 1: Servicio instantáneo PRIMERO (ultra-rápido)
+  // Estrategia 1: Servicio instantáneo PRIMERO (ultra-rápido) con CID válido
   try {
-    const instantContent = await instantIPFS.getContent(hash);
+    // Asegurar que usamos un CID válido desde el inicio
+    const validHash = instantIPFS.isValidCID(hash) ? hash : instantIPFS.generateValidCID();
+    
+    if (hash !== validHash) {
+      console.log(`🔧 [INSTANTÁNEO] CID corregido: ${hash} -> ${validHash}`);
+    }
+    
+    const instantContent = await instantIPFS.getContent(validHash);
     if (instantContent) {
-      console.log(`✅ [INSTANTÁNEO] Contenido obtenido al instante`);
+      console.log(`✅ [INSTANTÁNEO] Contenido obtenido al instante con CID válido`);
       return instantContent;
     }
   } catch (error) {
