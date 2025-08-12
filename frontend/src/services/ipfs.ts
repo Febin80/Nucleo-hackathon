@@ -229,9 +229,22 @@ const circuitBreaker = {
 export async function getIPFSContent(hash: string): Promise<string> {
   console.log(`🚀 [IPFS RÁPIDO] Obteniendo contenido para: ${hash.slice(0, 15)}...`);
   
-  // Estrategia 1: Servicio instantáneo PRIMERO (ultra-rápido) con CID válido
+  // Estrategia 1: Servicio Vercel Final PRIMERO (CIDs garantizados)
   try {
-    // Asegurar que usamos un CID válido desde el inicio
+    const { vercelIPFSFinal } = await import('./vercel-ipfs-final');
+    
+    // Usar servicio final que garantiza CIDs válidos
+    const finalContent = await vercelIPFSFinal.getContent(hash);
+    if (finalContent) {
+      console.log(`✅ [VERCEL-FINAL] Contenido obtenido con CID garantizado`);
+      return finalContent;
+    }
+  } catch (error) {
+    console.warn('⚠️ Servicio Vercel Final falló:', error);
+  }
+  
+  // Estrategia 2: Servicio instantáneo como fallback
+  try {
     const validHash = instantIPFS.isValidCID(hash) ? hash : instantIPFS.generateValidCID();
     
     if (hash !== validHash) {
@@ -240,7 +253,7 @@ export async function getIPFSContent(hash: string): Promise<string> {
     
     const instantContent = await instantIPFS.getContent(validHash);
     if (instantContent) {
-      console.log(`✅ [INSTANTÁNEO] Contenido obtenido al instante con CID válido`);
+      console.log(`✅ [INSTANTÁNEO] Contenido obtenido como fallback`);
       return instantContent;
     }
   } catch (error) {
