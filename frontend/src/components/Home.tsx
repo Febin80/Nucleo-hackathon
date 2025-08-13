@@ -52,22 +52,38 @@ export const Home = () => {
   }
 
   return (
-    <Box bg={bgColor} minH="100vh" py={8}>
-      <Container maxW="container.lg">
-        <VStack spacing={8} align="stretch">
+    <Box bg={bgColor} minH="100vh" py={{ base: 4, md: 8 }}>
+      <Container maxW="container.lg" px={{ base: 4, md: 6 }}>
+        <VStack spacing={{ base: 6, md: 8 }} align="stretch">
           {/* Header */}
           <Box textAlign="center">
-            <Heading size="2xl" mb={4} color="blue.600">
-              🛡️ DenunciaChain
+            <Heading 
+              size={{ base: "xl", md: "2xl" }} 
+              mb={4} 
+              color="blue.600"
+              px={{ base: 2, md: 0 }}
+            >
+              🛡️ DenunciaChain v2.0
             </Heading>
-            <Text fontSize="xl" color="gray.600" maxW="600px" mx="auto">
+            <Text 
+              fontSize={{ base: "md", md: "xl" }} 
+              color="gray.600" 
+              maxW="600px" 
+              mx="auto"
+              px={{ base: 2, md: 0 }}
+            >
               Plataforma descentralizada para denuncias anónimas usando blockchain y IPFS
             </Text>
-            <HStack justify="center" mt={4} spacing={4}>
-              <Badge colorScheme="blue" px={3} py={1}>Blockchain</Badge>
-              <Badge colorScheme="green" px={3} py={1}>IPFS</Badge>
-              <Badge colorScheme="purple" px={3} py={1}>Anónimo</Badge>
-              <Badge colorScheme="orange" px={3} py={1}>Inmutable</Badge>
+            <HStack 
+              justify="center" 
+              mt={4} 
+              spacing={{ base: 2, md: 4 }}
+              flexWrap="wrap"
+            >
+              <Badge colorScheme="blue" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>Blockchain</Badge>
+              <Badge colorScheme="green" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>IPFS</Badge>
+              <Badge colorScheme="purple" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>Anónimo</Badge>
+              <Badge colorScheme="orange" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>Inmutable</Badge>
             </HStack>
           </Box>
 
@@ -82,10 +98,15 @@ export const Home = () => {
                   DenunciaChain es una plataforma revolucionaria que permite realizar denuncias anónimas 
                   de manera segura y transparente utilizando tecnología blockchain e IPFS.
                 </Text>
-                <HStack align="start" spacing={4}>
-                  <VStack align="start" flex={1}>
+                <VStack 
+                  direction={{ base: "column", md: "row" }} 
+                  align="start" 
+                  spacing={{ base: 4, md: 4 }}
+                  w="100%"
+                >
+                  <VStack align="start" flex={1} w={{ base: "100%", md: "auto" }}>
                     <Text fontWeight="bold" color="green.600">✅ Ventajas:</Text>
-                    <List spacing={1} fontSize="sm">
+                    <List spacing={1} fontSize={{ base: "xs", md: "sm" }}>
                       <ListItem>🔒 Completamente anónimo</ListItem>
                       <ListItem>🌐 Descentralizado e inmutable</ListItem>
                       <ListItem>📄 Evidencia multimedia soportada</ListItem>
@@ -93,9 +114,9 @@ export const Home = () => {
                       <ListItem>⚡ Acceso global 24/7</ListItem>
                     </List>
                   </VStack>
-                  <VStack align="start" flex={1}>
+                  <VStack align="start" flex={1} w={{ base: "100%", md: "auto" }}>
                     <Text fontWeight="bold" color="blue.600">🛠️ Tecnologías:</Text>
-                    <List spacing={1} fontSize="sm">
+                    <List spacing={1} fontSize={{ base: "xs", md: "sm" }}>
                       <ListItem>⛓️ Mantle Sepolia Blockchain</ListItem>
                       <ListItem>📦 IPFS para almacenamiento</ListItem>
                       <ListItem>🦊 MetaMask para autenticación</ListItem>
@@ -103,7 +124,7 @@ export const Home = () => {
                       <ListItem>📱 Interfaz web responsive</ListItem>
                     </List>
                   </VStack>
-                </HStack>
+                </VStack>
               </VStack>
             </CardBody>
           </Card>
@@ -159,18 +180,20 @@ export const Home = () => {
                       colorScheme="green" 
                       onClick={addMantleNetwork}
                       leftIcon={<Text>🚀</Text>}
+                      size={{ base: "sm", md: "md" }}
+                      w={{ base: "100%", md: "auto" }}
                     >
                       Agregar Mantle Sepolia Automáticamente
                     </Button>
 
-                    <Box bg="gray.100" p={3} borderRadius="md" w="100%">
-                      <Text fontSize="sm" fontWeight="bold" mb={2}>📋 Configuración Manual:</Text>
-                      <VStack align="start" spacing={1} fontSize="xs" fontFamily="mono">
-                        <Text><strong>Nombre de Red:</strong> Mantle Sepolia Testnet</Text>
-                        <Text><strong>RPC URL:</strong> https://rpc.sepolia.mantle.xyz</Text>
+                    <Box bg="gray.100" p={{ base: 2, md: 3 }} borderRadius="md" w="100%">
+                      <Text fontSize={{ base: "xs", md: "sm" }} fontWeight="bold" mb={2}>📋 Configuración Manual:</Text>
+                      <VStack align="start" spacing={1} fontSize={{ base: "2xs", md: "xs" }} fontFamily="mono">
+                        <Text wordBreak="break-all"><strong>Nombre de Red:</strong> Mantle Sepolia Testnet</Text>
+                        <Text wordBreak="break-all"><strong>RPC URL:</strong> https://rpc.sepolia.mantle.xyz</Text>
                         <Text><strong>Chain ID:</strong> 5003</Text>
                         <Text><strong>Símbolo:</strong> MNT</Text>
-                        <Text><strong>Explorador:</strong> https://explorer.sepolia.mantle.xyz</Text>
+                        <Text wordBreak="break-all"><strong>Explorador:</strong> https://explorer.sepolia.mantle.xyz</Text>
                       </VStack>
                     </Box>
                   </VStack>
@@ -250,24 +273,29 @@ export const Home = () => {
                     <Heading size="md">📄 Tipos de Contenido Soportados</Heading>
                   </HStack>
                   <VStack align="start" spacing={2} pl={4}>
-                    <HStack spacing={8}>
-                      <VStack align="start">
+                    <VStack 
+                      direction={{ base: "column", md: "row" }} 
+                      spacing={{ base: 4, md: 8 }}
+                      align="start"
+                      w="100%"
+                    >
+                      <VStack align="start" w={{ base: "100%", md: "auto" }}>
                         <Text fontWeight="bold" color="green.600">📝 Texto:</Text>
-                        <List spacing={1} fontSize="sm">
+                        <List spacing={1} fontSize={{ base: "xs", md: "sm" }}>
                           <ListItem>• Descripción detallada</ListItem>
                           <ListItem>• Cifrado opcional</ListItem>
                           <ListItem>• Categorización por tipo</ListItem>
                         </List>
                       </VStack>
-                      <VStack align="start">
+                      <VStack align="start" w={{ base: "100%", md: "auto" }}>
                         <Text fontWeight="bold" color="blue.600">📎 Multimedia:</Text>
-                        <List spacing={1} fontSize="sm">
+                        <List spacing={1} fontSize={{ base: "xs", md: "sm" }}>
                           <ListItem>• Imágenes (JPG, PNG, GIF)</ListItem>
                           <ListItem>• Videos (MP4, MOV, AVI)</ListItem>
                           <ListItem>• Documentos (PDF)</ListItem>
                         </List>
                       </VStack>
-                    </HStack>
+                    </VStack>
                   </VStack>
                 </Box>
 
@@ -380,10 +408,15 @@ export const Home = () => {
                   </VStack>
                 </Alert>
 
-                <HStack spacing={8} align="start">
-                  <VStack align="start" flex={1}>
+                <VStack 
+                  direction={{ base: "column", md: "row" }} 
+                  spacing={{ base: 4, md: 8 }} 
+                  align="start"
+                  w="100%"
+                >
+                  <VStack align="start" flex={1} w={{ base: "100%", md: "auto" }}>
                     <Text fontWeight="bold" color="green.600">✅ Garantías de Seguridad:</Text>
-                    <List spacing={1} fontSize="sm">
+                    <List spacing={1} fontSize={{ base: "xs", md: "sm" }}>
                       <ListItem>🔐 Cifrado AES-256-CBC</ListItem>
                       <ListItem>⛓️ Inmutabilidad blockchain</ListItem>
                       <ListItem>🌐 Almacenamiento descentralizado</ListItem>
@@ -391,9 +424,9 @@ export const Home = () => {
                       <ListItem>🛡️ Sin servidores centralizados</ListItem>
                     </List>
                   </VStack>
-                  <VStack align="start" flex={1}>
+                  <VStack align="start" flex={1} w={{ base: "100%", md: "auto" }}>
                     <Text fontWeight="bold" color="orange.600">⚠️ Recomendaciones:</Text>
-                    <List spacing={1} fontSize="sm">
+                    <List spacing={1} fontSize={{ base: "xs", md: "sm" }}>
                       <ListItem>💾 Guarda las contraseñas de cifrado</ListItem>
                       <ListItem>🔑 Protege tu wallet MetaMask</ListItem>
                       <ListItem>📱 Usa conexión segura (HTTPS)</ListItem>
@@ -401,7 +434,7 @@ export const Home = () => {
                       <ListItem>📝 Anota las contraseñas en lugar seguro</ListItem>
                     </List>
                   </VStack>
-                </HStack>
+                </VStack>
 
                 <Box bg="red.50" p={3} borderRadius="md" borderLeft="4px solid" borderColor="red.400">
                   <VStack align="start" spacing={2}>
@@ -431,10 +464,10 @@ export const Home = () => {
                 estarás listo para usar DenunciaChain de forma segura y anónima.
               </Text>
               <VStack spacing={3}>
-                <HStack justify="center" spacing={4}>
-                  <Badge colorScheme="green" px={3} py={1}>Gratuito</Badge>
-                  <Badge colorScheme="blue" px={3} py={1}>Anónimo</Badge>
-                  <Badge colorScheme="purple" px={3} py={1}>Seguro</Badge>
+                <HStack justify="center" spacing={{ base: 2, md: 4 }} flexWrap="wrap">
+                  <Badge colorScheme="green" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>Gratuito</Badge>
+                  <Badge colorScheme="blue" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>Anónimo</Badge>
+                  <Badge colorScheme="purple" px={3} py={1} fontSize={{ base: "xs", md: "sm" }}>Seguro</Badge>
                 </HStack>
                 <Text fontSize="sm" color="gray.600">
                   Recuerda: Guarda siempre las contraseñas de cifrado en un lugar seguro
