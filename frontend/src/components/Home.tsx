@@ -63,7 +63,7 @@ export const Home = () => {
               color="blue.600"
               px={{ base: 2, md: 0 }}
             >
-              🛡️ DenunciaChain v2.1 - CID Fix
+              🛡️ DenunciaChain v2.2 - Fixed Deploy
             </Heading>
             <Text 
               fontSize={{ base: "md", md: "xl" }} 

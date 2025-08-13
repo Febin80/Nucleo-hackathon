@@ -8,7 +8,7 @@
     "deploy": "hardhat run scripts/deploy.ts --network localhost",
     "node": "hardhat node",
     "clean": "hardhat clean",
-    "build": "cd frontend && npm install && npm run build",
+    "build": "cd frontend && npm ci && npm run build",
     "dev": "cd frontend && npm run dev",
     "install-frontend": "cd frontend && npm install"
   },
