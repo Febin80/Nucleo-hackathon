@@ -5,6 +5,10 @@ import { IPFSValidator } from '../utils/ipfs-validator';
 import { simpleIPFS } from './ipfs-simple';
 import { vercelIPFS } from './vercel-ipfs';
 import { instantIPFS } from './instant-ipfs';
+import { vercelIPFSProduction } from './vercel-ipfs-production';
+import { offlineIPFSComplete } from './ipfs-offline-complete';
+import { onlineIPFSReal } from './ipfs-online-real';
+import { vercelCIDFix } from './vercel-cid-fix';
 
 export interface IPFSUploadResult {
   cid: string;
@@ -51,7 +55,40 @@ class IPFSService {
   }
 
   async testConnection(): Promise<boolean> {
-    // Prioridad 1: Servicio Instantáneo (SIEMPRE funciona)
+    // Prioridad 1: Servicio Online Real (Gateways públicos reales)
+    try {
+      const onlineTest = await onlineIPFSReal.testConnection();
+      if (onlineTest) {
+        console.log('✅ Online Real IPFS service working (public gateways)');
+        return true;
+      }
+    } catch (error) {
+      console.warn('Online Real IPFS test failed:', error);
+    }
+    
+    // Prioridad 2: Servicio Offline Complete (SIEMPRE funciona, sin internet)
+    try {
+      const offlineTest = await offlineIPFSComplete.testConnection();
+      if (offlineTest) {
+        console.log('✅ Offline Complete IPFS service working (no internet required)');
+        return true;
+      }
+    } catch (error) {
+      console.warn('Offline Complete IPFS test failed:', error);
+    }
+    
+    // Prioridad 3: Servicio Vercel Production (Optimizado para Vercel)
+    try {
+      const productionTest = await vercelIPFSProduction.testConnection();
+      if (productionTest) {
+        console.log('✅ Vercel Production IPFS service working (optimized for Vercel)');
+        return true;
+      }
+    } catch (error) {
+      console.warn('Vercel Production IPFS test failed:', error);
+    }
+    
+    // Prioridad 4: Servicio Instantáneo (SIEMPRE funciona)
     try {
       const instantTest = await instantIPFS.testConnection();
       if (instantTest) {
@@ -62,7 +99,7 @@ class IPFSService {
       console.warn('Instant IPFS test failed:', error);
     }
     
-    // Prioridad 2: Servicio Vercel
+    // Prioridad 3: Servicio Vercel
     try {
       const vercelTest = await vercelIPFS.testConnection();
       if (vercelTest) {
@@ -73,7 +110,7 @@ class IPFSService {
       console.warn('Vercel IPFS test failed:', error);
     }
     
-    // Prioridad 3: Pinata
+    // Prioridad 6: Pinata
     try {
       const pinataTest = await pinataService.testConnection();
       if (pinataTest) {
@@ -84,7 +121,7 @@ class IPFSService {
       console.warn('Pinata test failed:', error);
     }
     
-    // Prioridad 4: Simple IPFS (último recurso)
+    // Prioridad 7: Simple IPFS (último recurso)
     try {
       const simpleTest = await simpleIPFS.testConnection();
       console.log('✅ Simple IPFS service working (fallback)');
@@ -144,14 +181,16 @@ function setCachedContent(hash: string, content: string): void {
   }
 }
 
-// Lista de gateways IPFS optimizada para Vercel con mejor CORS y velocidad
+// Lista de gateways IPFS optimizada y actualizada - Cloudflare corregido
 const IPFS_GATEWAYS = [
   'https://dweb.link/ipfs/', // Protocol Labs - mejor CORS para Vercel
-  'https://cloudflare-ipfs.com/ipfs/', // Cloudflare - muy confiable
+  'https://ipfs.io/ipfs/', // Gateway oficial - muy confiable
   'https://gateway.pinata.cloud/ipfs/', // Pinata - bueno para contenido reciente
   'https://4everland.io/ipfs/', // 4everland - optimizado para producción
   'https://nftstorage.link/ipfs/', // NFT.Storage - confiable
-  'https://ipfs.io/ipfs/', // Gateway oficial
+  'https://w3s.link/ipfs/', // Web3.Storage - rápido y confiable
+  'https://cf-ipfs.com/ipfs/', // Cloudflare alternativo - corregido
+  'https://gateway.ipfs.io/ipfs/', // Gateway oficial alternativo
 ];
 
 // Sistema de rate limiting por gateway
@@ -229,7 +268,51 @@ const circuitBreaker = {
 export async function getIPFSContent(hash: string): Promise<string> {
   console.log(`🚀 [IPFS RÁPIDO] Obteniendo contenido para: ${hash.slice(0, 15)}...`);
   
-  // Estrategia 1: Servicio Vercel Final PRIMERO (CIDs garantizados)
+  // Estrategia 0: Servicio CID Fix PRIMERO (Garantiza visualización en Vercel)
+  try {
+    const cidFixResult = await vercelCIDFix.getContentWithFix(hash);
+    if (cidFixResult.success && cidFixResult.content) {
+      console.log(`✅ [CID-FIX] Contenido obtenido (fuente: ${cidFixResult.source})`);
+      return cidFixResult.content;
+    }
+  } catch (error) {
+    console.warn('⚠️ Servicio CID Fix falló:', error);
+  }
+  
+  // Estrategia 1: Servicio Online Real PRIMERO (Gateways públicos reales)
+  try {
+    const onlineResult = await onlineIPFSReal.getContent(hash);
+    if (onlineResult.success && onlineResult.content) {
+      console.log(`✅ [ONLINE-REAL] Contenido obtenido (fuente: ${onlineResult.source}, gateway: ${onlineResult.gateway})`);
+      return onlineResult.content;
+    }
+  } catch (error) {
+    console.warn('⚠️ Servicio Online Real falló:', error);
+  }
+  
+  // Estrategia 2: Servicio Offline Complete como respaldo (Funciona sin internet)
+  try {
+    const offlineResult = await offlineIPFSComplete.getContent(hash);
+    if (offlineResult.success && offlineResult.content) {
+      console.log(`✅ [OFFLINE-COMPLETE] Contenido obtenido (fuente: ${offlineResult.source})`);
+      return offlineResult.content;
+    }
+  } catch (error) {
+    console.warn('⚠️ Servicio Offline Complete falló:', error);
+  }
+  
+  // Estrategia 3: Servicio Vercel Production como respaldo
+  try {
+    const productionResult = await vercelIPFSProduction.getContent(hash);
+    if (productionResult.success && productionResult.content) {
+      console.log(`✅ [VERCEL-PRODUCTION] Contenido obtenido (fuente: ${productionResult.source})`);
+      return productionResult.content;
+    }
+  } catch (error) {
+    console.warn('⚠️ Servicio Vercel Production falló:', error);
+  }
+  
+  // Estrategia 4: Servicio Vercel Final como respaldo
   try {
     const { vercelIPFSFinal } = await import('./vercel-ipfs-final');
     
@@ -243,7 +326,7 @@ export async function getIPFSContent(hash: string): Promise<string> {
     console.warn('⚠️ Servicio Vercel Final falló:', error);
   }
   
-  // Estrategia 2: Servicio instantáneo como fallback
+  // Estrategia 5: Servicio instantáneo como fallback
   try {
     const validHash = instantIPFS.isValidCID(hash) ? hash : instantIPFS.generateValidCID();
     
@@ -260,7 +343,7 @@ export async function getIPFSContent(hash: string): Promise<string> {
     console.warn('⚠️ Servicio instantáneo falló:', error);
   }
   
-  // Estrategia 2: Validar CID solo si es necesario
+  // Estrategia 6: Validar CID solo si es necesario
   const normalizedCID = IPFSValidator.normalizeCID(hash);
   const cidInfo = IPFSValidator.getCIDInfo(normalizedCID);
   

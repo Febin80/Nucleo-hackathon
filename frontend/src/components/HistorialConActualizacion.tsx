@@ -227,37 +227,58 @@ export const HistorialConActualizacion = () => {
   }
 
   return (
-    <Box>
-      <Box mb={6}>
-        <HStack justify="space-between" align="center" mb={4}>
-          <VStack align="start" spacing={1}>
-            <Heading size="lg" color="blue.600">
-              🎉 Historial de Denuncias (Sin MetaMask)
+    <Box px={{ base: 2, md: 0 }}>
+      <Box mb={{ base: 4, md: 6 }}>
+        <HStack 
+          direction={{ base: "column", md: "row" }} 
+          justify={{ base: "center", md: "space-between" }} 
+          align={{ base: "center", md: "center" }} 
+          mb={4}
+          spacing={{ base: 4, md: 0 }}
+        >
+          <VStack align={{ base: "center", md: "start" }} spacing={1}>
+            <Heading 
+              size={{ base: "md", md: "lg" }} 
+              color="blue.600"
+              textAlign={{ base: "center", md: "left" }}
+            >
+              🎉 Historial de Denuncias
             </Heading>
-            <Text color="gray.600">
+            <Text 
+              color="gray.600"
+              fontSize={{ base: "sm", md: "md" }}
+              textAlign={{ base: "center", md: "left" }}
+            >
               Se encontraron <strong>{denuncias.length} denuncias</strong> en la blockchain
             </Text>
           </VStack>
           
-          <VStack spacing={2}>
-            <HStack spacing={2}>
+          <VStack spacing={2} w={{ base: "100%", md: "auto" }}>
+            <HStack 
+              spacing={2} 
+              justify={{ base: "center", md: "flex-end" }}
+              w={{ base: "100%", md: "auto" }}
+              flexWrap="wrap"
+            >
               <Button 
                 onClick={handleManualRefresh} 
-                size="sm" 
+                size={{ base: "sm", md: "sm" }} 
                 colorScheme="blue" 
                 variant="outline"
                 isLoading={loading}
+                fontSize={{ base: "xs", md: "sm" }}
               >
                 🔄 Actualizar
               </Button>
               
               <Button
-                size="sm"
+                size={{ base: "sm", md: "sm" }}
                 colorScheme={autoRefresh ? "red" : "green"}
                 variant={autoRefresh ? "solid" : "outline"}
                 onClick={() => setAutoRefresh(!autoRefresh)}
+                fontSize={{ base: "xs", md: "sm" }}
               >
-                {autoRefresh ? "⏹️ Detener" : "▶️ Auto-refresh"}
+                {autoRefresh ? "⏹️ Detener" : "▶️ Auto"}
               </Button>
             </HStack>
             
