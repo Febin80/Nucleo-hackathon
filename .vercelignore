@@ -1,0 +1,34 @@
+# Hardhat files
+artifacts/
+cache/
+node_modules/
+.env
+.env.local
+
+# Build files
+*.log
+*.tgz
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+coverage/
+test/
+
+# Scripts
+*.sh
+
+# Documentation (except README)
+*.md
+!README.md
+
+# Config files not needed for deployment
+hardhat.config.ts
+tsconfig.json
+.gitignore
