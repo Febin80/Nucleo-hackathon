@@ -1,0 +1,28 @@
+
+> frontend@0.0.0 build
+> tsc && vite build
+
+vite v5.4.19 building for production...
+transforming...
+✓ 1407 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/services/encryption.ts is dynamically imported by /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/DenunciaForm.tsx but also statically imported by /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/EncryptionForm.tsx, /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/IPFSContentViewer.tsx, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/services/pinata.ts is dynamically imported by /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/IPFSFixDiagnostic.tsx but also statically imported by /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/IPFSStatusChecker.tsx, /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/services/ipfs.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/services/ipfs.ts is dynamically imported by /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/IPFSFixDiagnostic.tsx but also statically imported by /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/IPFSCompleteDiagnostic.tsx, /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/IPFSContentViewer.tsx, /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/OfflineIPFSTest.tsx, /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/OnlineIPFSTest.tsx, /Users/kevinkuo/Desktop/Hackathon/Nucleo/frontend/src/components/VercelIPFSTest.tsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/index.html                                0.47 kB │ gzip:   0.32 kB
+dist/assets/index-DLnPPNGv.css                 0.18 kB │ gzip:   0.15 kB
+dist/assets/vercel-ipfs-final-CRhSssH5.js      5.48 kB │ gzip:   2.45 kB │ map:    15.84 kB
+dist/assets/index-C6MQjJkK.js              1,177.44 kB │ gzip: 380.32 kB │ map: 4,650.04 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.42s

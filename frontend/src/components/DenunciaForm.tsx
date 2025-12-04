@@ -362,9 +362,16 @@ export const DenunciaForm = () => {
 
   return (
     <Card width="100%" maxW="800px" mx="auto">
-      <CardBody>
-        <VStack spacing={6} as="form" onSubmit={handleSubmit}>
-          <Heading size="md">Crear Nueva Denuncia</Heading>
+      <CardBody p={{ base: 4, md: 6 }}>
+        <VStack spacing={{ base: 4, md: 6 }} as="form" onSubmit={handleSubmit}>
+          <Heading 
+            size={{ base: "md", md: "lg" }} 
+            textAlign="center"
+            color="blue.600"
+            px={{ base: 2, md: 0 }}
+          >
+            📝 Crear Nueva Denuncia
+          </Heading>
           
           {error && (
             <Alert status="error">
@@ -374,11 +381,12 @@ export const DenunciaForm = () => {
           )}
 
           <FormControl isRequired>
-            <FormLabel>Tipo de Acoso</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Tipo de Acoso</FormLabel>
             <Select
               placeholder="Selecciona el tipo de acoso"
               value={tipoAcoso}
               onChange={(e) => setTipoAcoso(e.target.value)}
+              size={{ base: "sm", md: "md" }}
             >
               <option value="acoso_laboral">Acoso Laboral</option>
               <option value="acoso_escolar">Acoso Escolar</option>
@@ -389,12 +397,14 @@ export const DenunciaForm = () => {
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Descripción</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Descripción</FormLabel>
             <Textarea
               placeholder="Describe la situación..."
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              minH="150px"
+              minH={{ base: "120px", md: "150px" }}
+              size={{ base: "sm", md: "md" }}
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
@@ -519,9 +529,12 @@ export const DenunciaForm = () => {
             type="submit"
             colorScheme="blue"
             width="100%"
+            size={{ base: "md", md: "lg" }}
             isLoading={loading}
             loadingText={getButtonText()}
             disabled={!tipoAcoso || !descripcion}
+            fontSize={{ base: "sm", md: "md" }}
+            py={{ base: 6, md: 8 }}
           >
             {getButtonText()}
           </Button>
